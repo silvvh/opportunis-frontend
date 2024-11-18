@@ -1,7 +1,6 @@
-import { Box, Button, Icon, Paper, TextField, useTheme } from '@mui/material';
+import { Box, Button, Icon, Paper, TextField, useTheme } from "@mui/material";
 
-import { Environment } from '../../environment';
-
+import { Environment } from "../../environment";
 
 interface IFerramentasDaListagemProps {
   textoDaBusca?: string;
@@ -12,11 +11,11 @@ interface IFerramentasDaListagemProps {
   aoClicarEmNovo?: () => void;
 }
 export const FerramentasDaListagem: React.FC<IFerramentasDaListagemProps> = ({
-  textoDaBusca = '',
+  textoDaBusca = "",
   aoMudarTextoDeBusca,
   mostrarInputBusca = false,
   aoClicarEmNovo,
-  textoBotaoNovo = 'Novo',
+  textoBotaoNovo = "Novo",
   mostrarBotaoNovo = true,
 }) => {
   const theme = useTheme();
@@ -44,12 +43,14 @@ export const FerramentasDaListagem: React.FC<IFerramentasDaListagemProps> = ({
       <Box flex={1} display="flex" justifyContent="end">
         {mostrarBotaoNovo && (
           <Button
-            color='primary'
+            color="primary"
             disableElevation
-            variant='contained'
+            variant="contained"
             onClick={aoClicarEmNovo}
             endIcon={<Icon>add</Icon>}
-          >{textoBotaoNovo}</Button>
+          >
+            {textoBotaoNovo}
+          </Button>
         )}
       </Box>
     </Box>

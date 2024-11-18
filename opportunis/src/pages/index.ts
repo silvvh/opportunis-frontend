@@ -1,3 +1,2 @@
-export * from './candidato/ListagemDeCandidatos';
-export * from './dashboard/Dashboards';
-
+export * from "./candidato/ListagemDeCandidatos";
+export * from "./dashboard/AdminDashboard";

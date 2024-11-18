@@ -5,7 +5,7 @@ import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 
-import { CandidatosService } from "../../shared/services/api/candidatos/CandidatosService";
+import { EmpresasService } from "../../shared/services/api/empresas/EmpresasService";
 import { FerramentasDeDetalhe } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { VTextField } from "../../shared/forms";
@@ -14,13 +14,12 @@ interface IFormData {
   name: string;
   email: string;
   telephone: string;
+  address: string;
+  cnpj: string;
   password: string;
-  cpf: string;
-  genre: string;
-  role: number[];
 }
 
-export const DetalheDeCandidatos: React.FC = () => {
+export const DetalheDeEmpresas: React.FC = () => {
   const { id = "novo" } = useParams<"id">();
   const navigate = useNavigate();
 
@@ -33,16 +32,15 @@ export const DetalheDeCandidatos: React.FC = () => {
     if (id !== "novo") {
       setIsLoading(true);
 
-      CandidatosService.getById(Number(id)).then((result) => {
+      EmpresasService.getById(Number(id)).then((result) => {
         setIsLoading(false);
 
         if (result instanceof Error) {
           alert(result.message);
-          navigate("/admin-dashboard/candidatos");
+          navigate("/admin-dashboard/empresas");
         } else {
           setNome(result.name);
-          const formData = { ...result, password: "" };
-          formRef.current?.setData(formData);
+          formRef.current?.setData(result);
         }
       });
     }
@@ -52,19 +50,20 @@ export const DetalheDeCandidatos: React.FC = () => {
     setIsLoading(true);
 
     if (id === "novo") {
-      CandidatosService.create(dados).then((result) => {
+      EmpresasService.create(dados).then((result) => {
         setIsLoading(false);
 
         if (result instanceof Error) {
           alert(result.message);
         } else {
-          navigate(`/admin-dashboard/candidato/${result}`);
+          navigate(`/admin-dashboard/empresa/${result}`);
         }
       });
     } else {
-      CandidatosService.updateById(Number(id), {
+      EmpresasService.updateById(Number(id), {
         id: Number(id),
         ...dados,
+        password: "",
       }).then((result) => {
         setIsLoading(false);
 
@@ -77,12 +76,12 @@ export const DetalheDeCandidatos: React.FC = () => {
 
   const handleDelete = (id: number) => {
     if (confirm("Realmente deseja apagar?")) {
-      CandidatosService.deleteById(id).then((result) => {
+      EmpresasService.deleteById(id).then((result) => {
         if (result instanceof Error) {
           alert(result.message);
         } else {
           alert("Registro apagado com sucesso!");
-          navigate("/admin-dashboard/candidatos");
+          navigate("/admin-dashboard/empresas");
         }
       });
     }
@@ -90,17 +89,16 @@ export const DetalheDeCandidatos: React.FC = () => {
 
   return (
     <LayoutBaseDePagina
-      titulo={id === "novo" ? "Novo candidato" : nome}
+      titulo={id === "novo" ? "Nova empresa" : nome}
       barraDeFerramentas={
         <FerramentasDeDetalhe
           textoBotaoNovo="Novo"
           mostrarBotaoNovo={id !== "novo"}
           mostrarBotaoApagar={id !== "novo"}
-          aoClicarEmVoltar={() => navigate("/admin-dashboard/candidatos")}
+          aoClicarEmVoltar={() => navigate("/admin-dashboard/empresas")}
           aoClicarEmApagar={() => handleDelete(Number(id))}
           aoClicarEmSalvar={() => formRef.current?.submitForm()}
-          aoClicarEmNovo={() => navigate("/admin-dashboard/candidato/novo")}
-          aoClicarEmSalvarEFechar={() => formRef.current?.submitForm()}
+          aoClicarEmNovo={() => navigate("/admin-dashboard/empresa/novo")}
         />
       }
     >
@@ -135,7 +133,7 @@ export const DetalheDeCandidatos: React.FC = () => {
                   fullWidth
                   name="name"
                   disabled={isLoading}
-                  label="Nome completo"
+                  label="Nome"
                   onChange={(e) => setNome(e.target.value)}
                 />
               </Grid>
@@ -156,17 +154,6 @@ export const DetalheDeCandidatos: React.FC = () => {
               <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
                 <VTextField
                   fullWidth
-                  name="password"
-                  disabled={isLoading}
-                  label="Alterar senha"
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
                   label="Telefone"
                   name="telephone"
                   disabled={isLoading}
@@ -178,19 +165,8 @@ export const DetalheDeCandidatos: React.FC = () => {
               <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
                 <VTextField
                   fullWidth
-                  name="cpf"
-                  label="CPF"
-                  disabled={isLoading}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
-                  name="genre"
-                  label="Gênero"
+                  name="cnpj"
+                  label="CNPJ"
                   disabled={isLoading}
                 />
               </Grid>

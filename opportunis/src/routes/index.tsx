@@ -1,9 +1,18 @@
-import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import { useDrawerContext } from '../shared/contexts';
-import { Dashboard, ListagemDeCandidatos} from '../pages';
-import { DetalheDeCandidatos } from '../pages/candidato/DetalheDeCandidatos';
+import { useDrawerContext } from "../shared/contexts";
+import { ListagemDeCandidatos } from "../pages";
+import { DetalheDeCandidatos } from "../pages/candidato/DetalheDeCandidatos";
+import Home from "../pages/home/Home";
+import CompanyRegister from "../pages/register/CompanyRegister";
+import CandidateRegister from "../pages/register/CandidateRegister";
+import Login from "../pages/login/Login";
+import AdminDashboard from "../pages/dashboard/AdminDashboard";
+import { ListagemDeEmpresas } from "../pages/empresa/ListagemDeEmpresas";
+import { DetalheDeEmpresas } from "../pages/empresa/DetalheDeEmpresas";
+import CompanyDashboard from "../pages/dashboard/CompanyDashboard";
+import CandidateDashboard from "../pages/dashboard/CandidateDashboard";
 
 export const AppRoutes = () => {
   const { setDrawerOptions } = useDrawerContext();
@@ -11,26 +20,34 @@ export const AppRoutes = () => {
   useEffect(() => {
     setDrawerOptions([
       {
-        icon: 'home',
-        path: '/pagina-inicial',
-        label: 'Página inicial',
+        icon: "home",
+        path: "/dashboard",
+        label: "Dashboard",
       },
       {
-        icon: 'people',
-        path: '/candidatos',
-        label: 'Candidatos',
+        icon: "people",
+        path: "candidatos",
+        label: "Candidatos",
       },
     ]);
-  }, []);
+  }, [setDrawerOptions]);
 
   return (
     <Routes>
-      <Route path="/pagina-inicial" element={<Dashboard />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/admin-dashboard" element={<AdminDashboard />}>
+        <Route path="candidatos" element={<ListagemDeCandidatos />} />
+        <Route path="candidato/:id" element={<DetalheDeCandidatos />} />
+        <Route path="empresas" element={<ListagemDeEmpresas />} />
+        <Route path="empresa/:id" element={<DetalheDeEmpresas />} />
+      </Route>
+      <Route path="/company-dashboard" element={<CompanyDashboard />} />
+      <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+      <Route path="/company-register" element={<CompanyRegister />} />
+      <Route path="/candidate-register" element={<CandidateRegister />} />
+      <Route path="/login" element={<Login />} />
 
-      <Route path="/candidatos" element={<ListagemDeCandidatos />} />
-      <Route path="/candidatos/detalhe/:id" element={<DetalheDeCandidatos />} />
-
-      <Route path="*" element={<Navigate to="/pagina-inicial" />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 };

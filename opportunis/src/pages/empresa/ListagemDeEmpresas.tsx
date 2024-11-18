@@ -3,21 +3,21 @@ import { Pagination } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
-  IListagemCandidato,
-  CandidatosService,
-} from "../../shared/services/api/candidatos/CandidatosService";
+  IListagemEmpresa,
+  EmpresasService,
+} from "../../shared/services/api/empresas/EmpresasService";
 import { FerramentasDaListagem } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { useDebounce } from "../../shared/hooks";
 import { Environment } from "../../shared/environment";
 import { Delete, Edit } from "@mui/icons-material";
 
-export const ListagemDeCandidatos: React.FC = () => {
+export const ListagemDeEmpresas: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { debounce } = useDebounce();
   const navigate = useNavigate();
 
-  const [rows, setRows] = useState<IListagemCandidato[]>([]);
+  const [rows, setRows] = useState<IListagemEmpresa[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -30,7 +30,7 @@ export const ListagemDeCandidatos: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     debounce(() => {
-      CandidatosService.getAll(pagina, busca).then((result) => {
+      EmpresasService.getAll(pagina, busca).then((result) => {
         setIsLoading(false);
         if (result instanceof Error) {
           alert(result.message);
@@ -45,7 +45,7 @@ export const ListagemDeCandidatos: React.FC = () => {
   const handleDelete = (id: number) => {
     // eslint-disable-next-line no-restricted-globals
     if (confirm("Realmente deseja apagar?")) {
-      CandidatosService.deleteById(id).then((result) => {
+      EmpresasService.deleteById(id).then((result) => {
         if (result instanceof Error) {
           alert(result.message);
         } else {
@@ -58,12 +58,12 @@ export const ListagemDeCandidatos: React.FC = () => {
 
   return (
     <LayoutBaseDePagina
-      titulo="Candidatos"
+      titulo="Empresas"
       barraDeFerramentas={
         <FerramentasDaListagem
           textoDaBusca={busca}
           textoBotaoNovo="Novo"
-          aoClicarEmNovo={() => navigate("/admin-dashboard/candidato/novo")}
+          aoClicarEmNovo={() => navigate("/admin-dashboard/empresa/novo")}
           aoMudarTextoDeBusca={(texto) =>
             setSearchParams({ busca: texto, pagina: "1" }, { replace: true })
           }
@@ -76,11 +76,10 @@ export const ListagemDeCandidatos: React.FC = () => {
             <thead className="bg-black text-white">
               <tr>
                 <th className="py-3 px-4 text-left">Ações</th>
-                <th className="py-3 px-4 text-left">Nome Completo</th>
+                <th className="py-3 px-4 text-left">Nome</th>
                 <th className="py-3 px-4 text-left">Email</th>
                 <th className="py-3 px-4 text-left">Telefone</th>
-                <th className="py-3 px-4 text-left">CPF</th>
-                <th className="py-3 px-4 text-left">Gênero</th>
+                <th className="py-3 px-4 text-left">CNPJ</th>
               </tr>
             </thead>
             <tbody>
@@ -98,7 +97,7 @@ export const ListagemDeCandidatos: React.FC = () => {
                     </button>
                     <button
                       onClick={() =>
-                        navigate(`/admin-dashboard/candidato/${row.id}`)
+                        navigate(`/admin-dashboard/empresa/${row.id}`)
                       }
                       className="text-gray-500  mx-1 hover:text-[#f8b503]"
                     >
@@ -108,8 +107,7 @@ export const ListagemDeCandidatos: React.FC = () => {
                   <td className="py-3 px-4">{row.name}</td>
                   <td className="py-3 px-4">{row.email}</td>
                   <td className="py-3 px-4">{row.telephone}</td>
-                  <td className="py-3 px-4">{row.cpf}</td>
-                  <td className="py-3 px-4">{row.genre}</td>
+                  <td className="py-3 px-4">{row.cnpj}</td>
                 </tr>
               ))}
             </tbody>

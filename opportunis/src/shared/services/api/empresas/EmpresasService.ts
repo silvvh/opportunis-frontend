@@ -1,39 +1,35 @@
 import { Api } from "../axios-config";
 import { Environment } from "../../../environment";
 
-export interface IListagemCandidato {
+export interface IListagemEmpresa {
   id: number;
   name: string;
   email: string;
   telephone: string;
   password: string;
-  cpf: string;
-  genre: string;
-  role: number[];
+  cnpj: string;
 }
 
-export interface IDetalheCandidato {
+export interface IDetalheEmpresa {
   id: number;
   name: string;
   email: string;
   telephone: string;
   password: string;
-  cpf: string;
-  genre: string;
-  role: number[];
+  cnpj: string;
 }
 
-type TPessoasComTotalCount = {
-  data: IListagemCandidato[];
+type TEmpresasComTotalCount = {
+  data: IListagemEmpresa[];
   totalCount: number;
 };
 
 const getAll = async (
   page = 1,
   filter = ""
-): Promise<TPessoasComTotalCount | Error> => {
+): Promise<TEmpresasComTotalCount | Error> => {
   try {
-    const urlRelativa = `/candidates?_page=${page}&_limit=${Environment.LIMITE_DE_LINHAS}&name_like=${filter}`;
+    const urlRelativa = `/companies?_page=${page}&_limit=${Environment.LIMITE_DE_LINHAS}&name_like=${filter}`;
 
     const { data, headers } = await Api.get(urlRelativa);
 
@@ -55,9 +51,9 @@ const getAll = async (
   }
 };
 
-const getById = async (id: number): Promise<IDetalheCandidato | Error> => {
+const getById = async (id: number): Promise<IDetalheEmpresa | Error> => {
   try {
-    const { data } = await Api.get(`/candidates/${id}`);
+    const { data } = await Api.get(`/companies/${id}`);
 
     if (data) {
       return data;
@@ -73,10 +69,10 @@ const getById = async (id: number): Promise<IDetalheCandidato | Error> => {
 };
 
 const create = async (
-  dados: Omit<IDetalheCandidato, "id">
+  dados: Omit<IDetalheEmpresa, "id">
 ): Promise<number | Error> => {
   try {
-    const { data } = await Api.post<IDetalheCandidato>("/candidates", dados);
+    const { data } = await Api.post<IDetalheEmpresa>("/companies", dados);
 
     if (data) {
       return data.id;
@@ -93,11 +89,10 @@ const create = async (
 
 const updateById = async (
   id: number,
-  dados: IDetalheCandidato
+  dados: IDetalheEmpresa
 ): Promise<void | Error> => {
   try {
-    console.debug("b");
-    await Api.put(`/candidates/${id}`, dados);
+    await Api.put(`/companies/${id}`, dados);
   } catch (error) {
     console.error(error);
     return new Error(
@@ -108,7 +103,7 @@ const updateById = async (
 
 const deleteById = async (id: number): Promise<void | Error> => {
   try {
-    await Api.delete(`/candidates/${id}`);
+    await Api.delete(`/companies/${id}`);
   } catch (error) {
     console.error(error);
     return new Error(
@@ -117,7 +112,7 @@ const deleteById = async (id: number): Promise<void | Error> => {
   }
 };
 
-export const CandidatosService = {
+export const EmpresasService = {
   getAll,
   create,
   getById,
