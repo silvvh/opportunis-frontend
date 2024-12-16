@@ -13,6 +13,8 @@ import { ListagemDeEmpresas } from "../pages/empresa/ListagemDeEmpresas";
 import { DetalheDeEmpresas } from "../pages/empresa/DetalheDeEmpresas";
 import CompanyDashboard from "../pages/dashboard/CompanyDashboard";
 import CandidateDashboard from "../pages/dashboard/CandidateDashboard";
+import { Perfil } from "../pages/candidato/Perfil";
+import Curriculum from "../pages/candidato/Curriculum";
 
 export const AppRoutes = () => {
   const { setDrawerOptions } = useDrawerContext();
@@ -42,7 +44,10 @@ export const AppRoutes = () => {
         <Route path="empresa/:id" element={<DetalheDeEmpresas />} />
       </Route>
       <Route path="/company-dashboard" element={<CompanyDashboard />} />
-      <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+      <Route path="/candidate-dashboard" element={<CandidateDashboard />}>
+        <Route path="profile" element={<Perfil />} />
+        <Route path="curriculum" element={<Curriculum />} />
+      </Route>
       <Route path="/company-register" element={<CompanyRegister />} />
       <Route path="/candidate-register" element={<CandidateRegister />} />
       <Route path="/login" element={<Login />} />

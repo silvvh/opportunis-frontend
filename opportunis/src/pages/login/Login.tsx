@@ -31,7 +31,7 @@ const Login = () => {
     }
 
     AuthService.login({ email, password }).then(
-      (result: { role: any; token: any; message: any }) => {
+      (result: { id: string; role: any; token: any; message: any }) => {
         if (result instanceof Error) {
           alert(result.message);
         } else {
@@ -41,6 +41,8 @@ const Login = () => {
             expires: 7,
           });
           Cookies.set("role", result.role);
+          Cookies.set("id", result.id);
+          console.debug(result);
           switch (result.role) {
             case "CANDIDATE":
               navigate(`/candidate-dashboard`);

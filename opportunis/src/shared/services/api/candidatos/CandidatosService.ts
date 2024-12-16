@@ -23,6 +23,15 @@ export interface IDetalheCandidato {
   role: number[];
 }
 
+export interface ICandidateEdition {
+  id: number;
+  name: string;
+  email: string;
+  telephone: string;
+  cpf: string;
+  genre: string;
+}
+
 type TPessoasComTotalCount = {
   data: IListagemCandidato[];
   totalCount: number;
@@ -96,7 +105,6 @@ const updateById = async (
   dados: IDetalheCandidato
 ): Promise<void | Error> => {
   try {
-    console.debug("b");
     await Api.put(`/candidates/${id}`, dados);
   } catch (error) {
     console.error(error);
