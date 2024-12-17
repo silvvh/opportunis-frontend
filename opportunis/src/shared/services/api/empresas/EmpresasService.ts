@@ -17,6 +17,11 @@ export interface IDetalheEmpresa {
   telephone: string;
   password: string;
   cnpj: string;
+  nacionality?: string | null;
+  qtd_employee?: number | null;
+  site?: string | null;
+  social_name?: string | null;
+  category_id?: number | null;
 }
 
 type TEmpresasComTotalCount = {

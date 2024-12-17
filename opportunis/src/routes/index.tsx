@@ -15,6 +15,8 @@ import CompanyDashboard from "../pages/dashboard/CompanyDashboard";
 import CandidateDashboard from "../pages/dashboard/CandidateDashboard";
 import { Perfil } from "../pages/candidato/Perfil";
 import Curriculum from "../pages/candidato/Curriculum";
+import DetalheDeVagas from "../pages/vagas/DetalheDeVagas";
+import { EditCompany } from "../pages/dashboard/EditCompany";
 
 export const AppRoutes = () => {
   const { setDrawerOptions } = useDrawerContext();
@@ -48,6 +50,9 @@ export const AppRoutes = () => {
         <Route path="profile" element={<Perfil />} />
         <Route path="curriculum" element={<Curriculum />} />
       </Route>
+      <Route path="/vacancies/:id" element={<DetalheDeVagas />} />
+      <Route path="/company-edit" element={<EditCompany />} />
+      <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
       <Route path="/company-register" element={<CompanyRegister />} />
       <Route path="/candidate-register" element={<CandidateRegister />} />
       <Route path="/login" element={<Login />} />
