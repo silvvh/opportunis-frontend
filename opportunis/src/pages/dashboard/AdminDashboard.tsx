@@ -47,62 +47,64 @@ const AdminDashboard = () => {
             <hr className="border-gray-200" />
           </div>
 
-          <div className="space-y-4">
-            <nav className="flex-1 space-y-2">
-              <Link
-                to="/admin-dashboard/candidatos"
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                  location.pathname.includes("/admin-dashboard/candidatos")
-                )}`}
-              >
-                <Person
-                  className={`flex-shrink-0 mr-4 w-6 h-6 ${
+          <div className="flex flex-col flex-1 px-3 mt-6">
+            <div className="space-y-4">
+              <nav className="flex-1 space-y-2">
+                <Link
+                  to="/admin-dashboard/candidatos"
+                  className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
                     location.pathname.includes("/admin-dashboard/candidatos")
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                />
-                Candidatos
-              </Link>
-              <Link
-                to="/admin-dashboard/empresas"
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                  location.pathname.includes("/admin-dashboard/empresas")
+                  )}`}
+                >
+                  <Person
+                    className={`flex-shrink-0 mr-4 w-6 h-6 ${
+                      location.pathname.includes("/admin-dashboard/candidatos")
+                        ? "text-white"
+                        : "text-black"
+                    }`}
+                  />
+                  Candidatos
+                </Link>
+                <Link
+                  to="/admin-dashboard/empresas"
+                  className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
+                    location.pathname.includes("/admin-dashboard/empresas")
+                  )}`}
+                >
+                  <Business
+                    className={`flex-shrink-0 mr-4 w-6 h-6 ${
+                      location.pathname.includes("/admin-dashboard/empresas")
+                        ? "text-white"
+                        : "text-black"
+                    }`}
+                  />
+                  Empresas
+                </Link>
+              </nav>
+
+              <button
+                onClick={handleLogout}
+                className={`flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
+                  false
                 )}`}
               >
-                <Business
-                  className={`flex-shrink-0 mr-4 w-6 h-6 ${
-                    location.pathname.includes("/admin-dashboard/empresas")
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                />
-                Empresas
-              </Link>
-            </nav>
+                <ExitToApp className="flex-shrink-0 mr-4 w-6 h-6" />
+                Logout
+              </button>
 
-            <button
-              onClick={handleLogout}
-              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                false
-              )}`}
-            >
-              <ExitToApp className="flex-shrink-0 mr-4 w-6 h-6" />
-              Logout
-            </button>
-
-            <hr className="border-gray-200" />
-          </div>
-
-          <div className="flex flex-col flex-1">
-            <main>
-              <div className="py-6">
-                <Outlet />
-                <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8"></div>
-              </div>
-            </main>
+              <hr className="border-gray-200" />
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col flex-1">
+        <main>
+          <div className="py-6">
+            <Outlet />
+            <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8"></div>
+          </div>
+        </main>
       </div>
     </div>
   );

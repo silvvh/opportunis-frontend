@@ -11,14 +11,15 @@ import {
   Button,
   Modal,
   Box,
+  IconButton,
 } from "@mui/material";
+import { Edit as EditIcon, Cancel as CancelIcon } from "@mui/icons-material"; // Importando os ícones
 import { useDrawerContext } from "../../shared/contexts";
-
 import { useDebounce } from "../../shared/hooks";
 import {
   IListagemVaga,
   VagasService,
-} from "../../shared/services/api/vagas/VagasServie";
+} from "../../shared/services/api/vagas/VagasService";
 
 const CompanyDashboard = () => {
   const token = Cookies.get("token");
@@ -52,6 +53,7 @@ const CompanyDashboard = () => {
     setOpenModal(false);
   };
 
+  // Configura o menu lateral sempre que o token ou role mudar
   useEffect(() => {
     if (token && role === "ENTERPRISE") {
       setDrawerOptions([
@@ -71,8 +73,15 @@ const CompanyDashboard = () => {
           alert(result.message);
         } else {
           if (Array.isArray(result.data)) {
-            setTotalCount(result.totalCount);
-            setRows(result.data);
+            const companyId = Number(idCompany);
+
+            // Filtrar vagas ativas e com idCompany válido
+            const filteredVagas = result.data.filter(
+              (vaga) => vaga.activate && vaga.company.id !== null && vaga.company.id === companyId
+            );
+
+            setTotalCount(filteredVagas.length);
+            setRows(filteredVagas);
           } else {
             setRows([]); // Caso result.data não seja um array válido
             console.error("Dados de vagas inválidos:", result.data);
@@ -80,13 +89,31 @@ const CompanyDashboard = () => {
         }
       });
     });
-  }, [busca, debounce, pagina]);
+  }, [busca, debounce, pagina, idCompany]);
+
+  const handleEdit = (vagaId: number) => {
+    // Lógica para editar a vaga
+    navigate(`/vacancies/edit/${vagaId}`);
+  };
+
+  const handleCancel = (id: number) => {
+    // eslint-disable-next-line no-restricted-globals
+    if (confirm("Realmente deseja cancelar a vaga?")) {
+      VagasService.deleteById(id).then((result) => {
+        if (result instanceof Error) {
+          alert(result.message);
+        } else {
+          setRows((oldRows) => oldRows.filter((oldRow) => oldRow.id !== id));
+          alert("Vaga Cancelada com Sucesso!");
+        }
+      });
+    }
+  };
 
   if (!token || role !== "ENTERPRISE") {
     return <Navigate to="/" replace />;
   }
 
-  console.log(idCompany);
   return (
     <MenuLateral>
       <LayoutBaseDePagina
@@ -109,7 +136,23 @@ const CompanyDashboard = () => {
             )
             .map((vaga) => (
               <Grid item xs={12} sm={6} md={4} key={vaga.id}>
-                <Card>
+                <Card sx={{ position: "relative" }}>
+                  {/* Ícones dentro do Card no canto superior direito */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <IconButton color="warning" onClick={() => handleCancel(vaga.id)}>
+                      <CancelIcon />
+                    </IconButton>
+                  </Box>
+
                   <CardContent>
                     <Typography variant="h6">{vaga.goal}</Typography>
                     <Typography variant="body2" color="textSecondary" paragraph>
@@ -156,23 +199,39 @@ const CompanyDashboard = () => {
                   {selectedVaga.goal}
                 </Typography>
                 <Typography variant="body1" paragraph>
-                  {selectedVaga.description}
+                  {selectedVaga.description || "Descrição não disponível"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Requisitos: {selectedVaga.requirements}
+                  Requisitos: {selectedVaga.requirements || "Não especificados"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Salário: {selectedVaga.wage}
+                  Salário: {selectedVaga.wage > 0 ? `R$ ${selectedVaga.wage}` : "Não informado"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Categoria: {selectedVaga.category?.name}
+                  Categoria: {selectedVaga.category?.name || "Não especificada"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Empresa: {selectedVaga.company?.name}
+                  Empresa: {selectedVaga.company?.name || "Não especificada"}
                 </Typography>
-                <Button variant="outlined" onClick={handleCloseModal}>
-                  Fechar
-                </Button>
+                {/* Botões no rodapé */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 4,
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)}
+                  >
+                    Ver Candidatos
+                  </Button>
+                  <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
+                    Fechar
+                  </Button>
+                </Box>
               </>
             )}
           </Box>

@@ -5,7 +5,7 @@ import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 
-import { EmpresasService } from "../../shared/services/api/empresas/EmpresasService";
+import { EmpresasService, IDetalheEmpresa } from "../../shared/services/api/empresas/EmpresasService";
 import { FerramentasDeDetalhe } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { VTextField } from "../../shared/forms";
@@ -46,7 +46,7 @@ export const DetalheDeEmpresas: React.FC = () => {
     }
   }, [id, navigate]);
 
-  const handleSave = (dados: IFormData) => {
+  const handleSave = (dados: IDetalheEmpresa) => {
     setIsLoading(true);
 
     if (id === "novo") {
@@ -61,7 +61,6 @@ export const DetalheDeEmpresas: React.FC = () => {
       });
     } else {
       EmpresasService.updateById(Number(id), {
-        id: Number(id),
         ...dados,
         password: "",
       }).then((result) => {

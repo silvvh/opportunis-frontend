@@ -10,7 +10,7 @@ export interface IListagemEmpresa {
   cnpj: string;
 }
 
-export interface IDetalheEmpresa {
+export interface IDetalheEmpresa2 {
   id: number;
   name: string;
   email: string;
@@ -23,6 +23,32 @@ export interface IDetalheEmpresa {
   social_name?: string | null;
   category_id?: number | null;
 }
+
+export interface IDetalheEmpresa {
+  id: number;
+  name: string;
+  email: string;
+  telephone: string;
+  password: string;
+  role: string;
+  socialName?: string;
+  cnpj: string;
+  qtdEmployee?: number;
+  site?: string;
+  companySector: string;
+  nationality?: string;
+  feedbacks?: any[]; // Ajuste o tipo dos feedbacks se necessário
+  enabled?: boolean;
+  authorities?: Array<{
+    authority?:string;
+  }>;
+  username?: string;
+  accountNonExpired?: boolean;
+  accountNonLocked?: boolean;
+  credentialsNonExpired?: boolean;
+}
+
+
 
 type TEmpresasComTotalCount = {
   data: IListagemEmpresa[];
@@ -56,7 +82,7 @@ const getAll = async (
   }
 };
 
-const getById = async (id: number): Promise<IDetalheEmpresa | Error> => {
+const getById = async (id: number): Promise<IDetalheEmpresa2 | Error> => {
   try {
     const { data } = await Api.get(`/companies/${id}`);
 
@@ -94,7 +120,7 @@ const create = async (
 
 const updateById = async (
   id: number,
-  dados: IDetalheEmpresa
+  dados: IDetalheEmpresa2
 ): Promise<void | Error> => {
   try {
     await Api.put(`/companies/${id}`, dados);

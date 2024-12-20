@@ -1,131 +1,242 @@
-import React from "react";
-import {
-  Link,
-  Navigate,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import React, { useMemo, useEffect, useState } from "react";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import Cookies from "js-cookie";
-import { ExitToApp, ManageAccounts, Article, Work } from "@mui/icons-material";
+import { LayoutBaseDePagina } from "../../shared/layouts";
+import { FerramentasDaListagem, MenuLateral } from "../../shared/components";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Button,
+  Modal,
+  Box,
+  IconButton,
+} from "@mui/material";
+import { Edit as EditIcon, Cancel as CancelIcon } from "@mui/icons-material"; // Importando os ícones
+import { useDrawerContext } from "../../shared/contexts";
+import { useDebounce } from "../../shared/hooks";
+import {
+  IListagemVaga,
+  VagasService,
+} from "../../shared/services/api/vagas/VagasService";
+import { CandidatureService } from "../../shared/services/api/candidature/CandidatureService";
 
-const CandidateDashboard = () => {
+const CompanyDashboard = () => {
   const token = Cookies.get("token");
   const role = Cookies.get("role");
-  const id = Cookies.get("id");
-  console.debug(id);
-  const location = useLocation();
+  const idCompany = Cookies.get("id");
+  const { debounce } = useDebounce();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const busca = useMemo(() => searchParams.get("busca") || "", [searchParams]);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    Cookies.remove("token");
-    Cookies.remove("role");
-    Cookies.remove("id");
-    navigate("/");
+  const [rows, setRows] = useState<IListagemVaga[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [selectedVaga, setSelectedVaga] = useState<IListagemVaga | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  const pagina = useMemo(
+    () => Number(searchParams.get("pagina") || "1"),
+    [searchParams]
+  );
+
+  const { setDrawerOptions } = useDrawerContext();
+
+  const handleOpenModal = (vaga: IListagemVaga) => {
+    setSelectedVaga(vaga);
+    setOpenModal(true);
   };
 
-  const getButtonStyles = (isActive: boolean) => {
-    return isActive
-      ? "bg-black text-white hover:text-[#f8b503]"
-      : "text-gray-900 hover:bg-[#f8b503] hover:text-white";
+  const handleCloseModal = () => {
+    setSelectedVaga(null);
+    setOpenModal(false);
   };
+
+  // Configura o menu lateral sempre que o token ou role mudar
+  useEffect(() => {
+    if (token && role === "CANDIDATE") {
+      setDrawerOptions([
+        { path: "/candidate-dashboard", label: "Início", icon: "home" },
+        { path: "/candidate-dashboard/profile", label: "Meus Dados", icon: "person" },
+        { path: "/candidate-dashboard/vacancies", label: "Minhas Vagas", icon: "business" },
+      ]);
+    }
+  }, [token, role, setDrawerOptions]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    debounce(() => {
+      VagasService.getAll(pagina, busca).then((result) => {
+        setIsLoading(false);
+        if (result instanceof Error) {
+          alert(result.message);
+        } else {
+          if (Array.isArray(result.data)) {
+            const companyId = Number(idCompany);
+
+            // Filtrar vagas ativas e com idCompany válido
+            const filteredVagas = result.data.filter(
+              (vaga) => vaga.activate
+            );
+
+            setTotalCount(filteredVagas.length);
+            setRows(filteredVagas);
+          } else {
+            setRows([]); // Caso result.data não seja um array válido
+            console.error("Dados de vagas inválidos:", result.data);
+          }
+        }
+      });
+    });
+  }, [busca, debounce, pagina, idCompany]);
+
+  const handleCandidatarSe = (vaga: IListagemVaga) => {
+    const candidateId = Number(Cookies.get("id")); // Obtém o ID do candidato do cookie
+  
+    if (!candidateId) {
+      alert("Erro ao obter o ID do candidato.");
+      return;
+    }
+  
+    const candidatura = {
+      id: {
+        candidate: { id: candidateId },
+        vacancy: { id: vaga.id },
+      },
+      date: new Date().toISOString(), // Define a data atual no formato ISO
+    };
+  
+    CandidatureService.create(candidatura)
+      .then((result) => {
+        if (result instanceof Error) {
+          alert(`Erro ao se candidatar: ${result.message}`);
+        } else {
+          alert("Candidatura realizada com sucesso!");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Ocorreu um erro ao tentar realizar a candidatura.");
+      });
+  };
+  
+
 
   if (!token || role !== "CANDIDATE") {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="flex flex-1 bg-gray-50">
-      {/* Painel lateral */}
-      <div className="hidden md:flex md:w-64 md:flex-col">
-        <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-gray-100">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <img
-              className="w-auto h-8"
-              src={require("../../Opportunis.png")}
-              alt=""
-            />
-          </div>
+    <MenuLateral>
+      <LayoutBaseDePagina
+        titulo="Vagas Abertas"
+      >
+        <Grid container spacing={3}>
+          {rows
+            .filter((vaga) =>
+              vaga.goal.toLowerCase().includes(busca.toLowerCase())
+            )
+            .map((vaga) => (
+              <Grid item xs={12} sm={6} md={4} key={vaga.id}>
+                <Card sx={{ position: "relative", height: "100%" }}>
+                  <CardContent sx={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+                    <Typography variant="h6">{vaga.goal}</Typography>
+                    <Typography variant="body2" color="textSecondary" paragraph>
+                      {vaga.description}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Empresa: {vaga.company?.name}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Categoria: {vaga.category?.name}
+                    </Typography>
 
-          <div className="px-4 mt-6">
-            <hr className="border-gray-200" />
-          </div>
+                    {/* Botões no rodapé do card */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: "auto" }}>
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        onClick={() => handleCandidatarSe(vaga)}
+                        >
+                          Candidatar-se
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOpenModal(vaga)}
+                      >
+                        Ver Detalhes
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+        </Grid>
 
-          <div className="space-y-4">
-            <nav className="flex-1 space-y-2">
-              <Link
-                to="/candidate-dashboard/profile"
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                  location.pathname.includes("/candidate-dashboard/profile")
-                )}`}
-              >
-                <ManageAccounts
-                  className={`flex-shrink-0 mr-4 w-6 h-6 ${
-                    location.pathname.includes("candidate-dashboard/profile")
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                />
-                Perfil
-              </Link>
-              <Link
-                to="/candidate-dashboard/curriculum"
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                  location.pathname.includes("/candidate-dashboard/curriculum")
-                )}`}
-              >
-                <Article
-                  className={`flex-shrink-0 mr-4 w-6 h-6 ${
-                    location.pathname.includes(
-                      "/candidate-dashboard/curriculum"
-                    )
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                />
-                Currículo
-              </Link>
-              <Link
-                to="/admin-dashboard/empresas"
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                  location.pathname.includes("/admin-dashboard/empresas")
-                )}`}
-              >
-                <Work
-                  className={`flex-shrink-0 mr-4 w-6 h-6 ${
-                    location.pathname.includes("/admin-dashboard/empresas")
-                      ? "text-white"
-                      : "text-black"
-                  }`}
-                />
-                Vagas
-              </Link>
-            </nav>
-
-            <button
-              onClick={handleLogout}
-              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group ${getButtonStyles(
-                false
-              )}`}
-            >
-              <ExitToApp className="flex-shrink-0 mr-4 w-6 h-6" />
-              Logout
-            </button>
-
-            <hr className="border-gray-200" />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1">
-        <main>
-          <div className="py-6">
-            <Outlet />
-          </div>
-        </main>
-      </div>
-    </div>
+        {/* Modal para exibir detalhes */}
+        <Modal open={openModal} onClose={handleCloseModal}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            {selectedVaga && (
+              <>
+                <Typography variant="h5" gutterBottom>
+                  {selectedVaga.goal}
+                </Typography>
+                <Typography variant="body1" paragraph>
+                  {selectedVaga.description || "Descrição não disponível"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" paragraph>
+                  Requisitos: {selectedVaga.requirements || "Não especificados"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" paragraph>
+                  Salário: {selectedVaga.wage > 0 ? `R$ ${selectedVaga.wage}` : "Não informado"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" paragraph>
+                  Categoria: {selectedVaga.category?.name || "Não especificada"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" paragraph>
+                  Empresa: {selectedVaga.company?.name || "Não especificada"}
+                </Typography>
+                {/* Botões no rodapé */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 4,
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)}
+                  >
+                    Candidatar-se
+                  </Button>
+                  <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
+                    Fechar
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Box>
+        </Modal>
+      </LayoutBaseDePagina>
+    </MenuLateral>
   );
 };
 
-export default CandidateDashboard;
+export default CompanyDashboard;
