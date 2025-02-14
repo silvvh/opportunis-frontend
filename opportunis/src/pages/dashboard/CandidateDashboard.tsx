@@ -1,5 +1,11 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import Cookies from "js-cookie";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { FerramentasDaListagem, MenuLateral } from "../../shared/components";
@@ -27,6 +33,7 @@ const CompanyDashboard = () => {
   const role = Cookies.get("role");
   const idCompany = Cookies.get("id");
   const { debounce } = useDebounce();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const busca = useMemo(() => searchParams.get("busca") || "", [searchParams]);
   const navigate = useNavigate();
@@ -58,9 +65,22 @@ const CompanyDashboard = () => {
   useEffect(() => {
     if (token && role === "CANDIDATE") {
       setDrawerOptions([
-        { path: "/candidate-dashboard", label: "Início", icon: "home" },
-        { path: "/candidate-dashboard/profile", label: "Meus Dados", icon: "person" },
-        { path: "/candidate-dashboard/vacancies", label: "Minhas Vagas", icon: "business" },
+        { path: "/candidate-dashboard", label: "Vagas", icon: "home" },
+        {
+          path: "/candidate-dashboard/profile",
+          label: "Meus Dados",
+          icon: "person",
+        },
+        {
+          path: "/candidate-dashboard/curriculum",
+          label: "Meu currículo",
+          icon: "business",
+        },
+        {
+          path: "/",
+          label: "Logout",
+          icon: "logout",
+        },
       ]);
     }
   }, [token, role, setDrawerOptions]);
@@ -77,9 +97,7 @@ const CompanyDashboard = () => {
             const companyId = Number(idCompany);
 
             // Filtrar vagas ativas e com idCompany válido
-            const filteredVagas = result.data.filter(
-              (vaga) => vaga.activate
-            );
+            const filteredVagas = result.data.filter((vaga) => vaga.activate);
 
             setTotalCount(filteredVagas.length);
             setRows(filteredVagas);
@@ -94,12 +112,12 @@ const CompanyDashboard = () => {
 
   const handleCandidatarSe = (vaga: IListagemVaga) => {
     const candidateId = Number(Cookies.get("id")); // Obtém o ID do candidato do cookie
-  
+
     if (!candidateId) {
       alert("Erro ao obter o ID do candidato.");
       return;
     }
-  
+
     const candidatura = {
       id: {
         candidate: { id: candidateId },
@@ -107,7 +125,7 @@ const CompanyDashboard = () => {
       },
       date: new Date().toISOString(), // Define a data atual no formato ISO
     };
-  
+
     CandidatureService.create(candidatura)
       .then((result) => {
         if (result instanceof Error) {
@@ -121,8 +139,6 @@ const CompanyDashboard = () => {
         alert("Ocorreu um erro ao tentar realizar a candidatura.");
       });
   };
-  
-
 
   if (!token || role !== "CANDIDATE") {
     return <Navigate to="/" replace />;
@@ -130,51 +146,71 @@ const CompanyDashboard = () => {
 
   return (
     <MenuLateral>
-      <LayoutBaseDePagina
-        titulo="Vagas Abertas"
-      >
-        <Grid container spacing={3}>
-          {rows
-            .filter((vaga) =>
-              vaga.goal.toLowerCase().includes(busca.toLowerCase())
-            )
-            .map((vaga) => (
-              <Grid item xs={12} sm={6} md={4} key={vaga.id}>
-                <Card sx={{ position: "relative", height: "100%" }}>
-                  <CardContent sx={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
-                    <Typography variant="h6">{vaga.goal}</Typography>
-                    <Typography variant="body2" color="textSecondary" paragraph>
-                      {vaga.description}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Empresa: {vaga.company?.name}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Categoria: {vaga.category?.name}
-                    </Typography>
+      <LayoutBaseDePagina titulo="Vagas Abertas">
+        {location.pathname.includes("profile") ||
+        location.pathname.includes("curriculum") ? (
+          <Outlet />
+        ) : (
+          <Grid container spacing={3}>
+            {rows
+              .filter((vaga) =>
+                vaga.goal.toLowerCase().includes(busca.toLowerCase())
+              )
+              .map((vaga) => (
+                <Grid item xs={12} sm={6} md={4} key={vaga.id}>
+                  <Card sx={{ position: "relative", height: "100%" }}>
+                    <CardContent
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        height: "100%",
+                      }}
+                    >
+                      <Typography variant="h6">{vaga.goal}</Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        paragraph
+                      >
+                        {vaga.description}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Empresa: {vaga.company?.name}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Categoria: {vaga.category?.name}
+                      </Typography>
 
-                    {/* Botões no rodapé do card */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: "auto" }}>
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        onClick={() => handleCandidatarSe(vaga)}
+                      {/* Botões no rodapé do card */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mt: "auto",
+                        }}
+                      >
+                        <Button
+                          variant="outlined"
+                          color="success"
+                          onClick={() => handleCandidatarSe(vaga)}
                         >
                           Candidatar-se
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOpenModal(vaga)}
-                      >
-                        Ver Detalhes
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-        </Grid>
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleOpenModal(vaga)}
+                        >
+                          Ver Detalhes
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+          </Grid>
+        )}
 
         {/* Modal para exibir detalhes */}
         <Modal open={openModal} onClose={handleCloseModal}>
@@ -203,7 +239,10 @@ const CompanyDashboard = () => {
                   Requisitos: {selectedVaga.requirements || "Não especificados"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Salário: {selectedVaga.wage > 0 ? `R$ ${selectedVaga.wage}` : "Não informado"}
+                  Salário:{" "}
+                  {selectedVaga.wage > 0
+                    ? `R$ ${selectedVaga.wage}`
+                    : "Não informado"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
                   Categoria: {selectedVaga.category?.name || "Não especificada"}
@@ -222,11 +261,17 @@ const CompanyDashboard = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)}
+                    onClick={() =>
+                      navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)
+                    }
                   >
                     Candidatar-se
                   </Button>
-                  <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleCloseModal}
+                  >
                     Fechar
                   </Button>
                 </Box>

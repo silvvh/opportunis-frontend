@@ -60,6 +60,11 @@ const CompanyDashboard = () => {
         { path: "/company-dashboard", label: "Início", icon: "home" },
         { path: "/company-dashboard", label: "Vagas", icon: "work" },
         { path: "/company-edit", label: "Minha Empresa", icon: "business" },
+        {
+          path: "/",
+          label: "Logout",
+          icon: "logout",
+        },
       ]);
     }
   }, [token, role, setDrawerOptions]);
@@ -77,7 +82,10 @@ const CompanyDashboard = () => {
 
             // Filtrar vagas ativas e com idCompany válido
             const filteredVagas = result.data.filter(
-              (vaga) => vaga.activate && vaga.company.id !== null && vaga.company.id === companyId
+              (vaga) =>
+                vaga.activate &&
+                vaga.company.id !== null &&
+                vaga.company.id === companyId
             );
 
             setTotalCount(filteredVagas.length);
@@ -148,7 +156,10 @@ const CompanyDashboard = () => {
                       alignItems: "flex-end",
                     }}
                   >
-                    <IconButton color="warning" onClick={() => handleCancel(vaga.id)}>
+                    <IconButton
+                      color="warning"
+                      onClick={() => handleCancel(vaga.id)}
+                    >
                       <CancelIcon />
                     </IconButton>
                   </Box>
@@ -205,7 +216,10 @@ const CompanyDashboard = () => {
                   Requisitos: {selectedVaga.requirements || "Não especificados"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Salário: {selectedVaga.wage > 0 ? `R$ ${selectedVaga.wage}` : "Não informado"}
+                  Salário:{" "}
+                  {selectedVaga.wage > 0
+                    ? `R$ ${selectedVaga.wage}`
+                    : "Não informado"}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
                   Categoria: {selectedVaga.category?.name || "Não especificada"}
@@ -224,11 +238,17 @@ const CompanyDashboard = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)}
+                    onClick={() =>
+                      navigate(`/vacancies-candidate?vagaId=${selectedVaga.id}`)
+                    }
                   >
                     Ver Candidatos
                   </Button>
-                  <Button variant="outlined" color="secondary" onClick={handleCloseModal}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleCloseModal}
+                  >
                     Fechar
                   </Button>
                 </Box>

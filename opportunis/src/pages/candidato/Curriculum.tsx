@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   TextField,
   Typography,
@@ -10,6 +10,10 @@ import {
   Button,
 } from "@mui/material";
 import Cookies from "js-cookie";
+import { CurriculumService } from "../../shared/services/api/candidatos/CurriculumService";
+import { FormHandles } from "@unform/core";
+import { Form } from "@unform/web";
+import { SpaceBar } from "@mui/icons-material";
 
 interface IFormData {
   candidate: { id: number | undefined };
@@ -34,6 +38,8 @@ const Curriculum: React.FC = () => {
     skills: [],
   });
 
+  const formRef = useRef<FormHandles>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Handlers
@@ -42,7 +48,7 @@ const Curriculum: React.FC = () => {
   };
 
   const handleSave = () => {
-    console.debug("Dados do currículo:", formData);
+    CurriculumService.save(formData);
   };
 
   const handleAddItem = <K extends keyof IFormData>(
@@ -83,251 +89,259 @@ const Curriculum: React.FC = () => {
         Currículo
       </Typography>
 
-      {/* Objetivo Profissional */}
-      <TextField
-        fullWidth
-        label="Objetivo Profissional"
-        name="professionalGoal"
-        value={formData.professionalGoal}
-        onChange={(e) => handleChange("professionalGoal", e.target.value)}
-        disabled={isLoading}
-        margin="normal"
-      />
-
-      {/* Informações Adicionais */}
-      <TextField
-        fullWidth
-        label="Informações Adicionais"
-        name="additionalInfo"
-        value={formData.additionalInfo}
-        onChange={(e) => handleChange("additionalInfo", e.target.value)}
-        disabled={isLoading}
-        margin="normal"
-      />
-
-      {/* Experiências Profissionais */}
-      <Typography variant="h6" gutterBottom>
-        Experiências Profissionais
-      </Typography>
-      {formData.professionalExperiences.map((experience, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <TextField
-            fullWidth
-            label="Organização"
-            value={experience.organization}
-            onChange={(e) =>
-              handleExperienceChange(
-                "professionalExperiences",
-                index,
-                "organization",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Descrição"
-            value={experience.description}
-            onChange={(e) =>
-              handleExperienceChange(
-                "professionalExperiences",
-                index,
-                "description",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-        </Box>
-      ))}
-      <Button
-        variant="outlined"
-        onClick={() =>
-          handleAddItem("professionalExperiences", {
-            organization: "",
-            description: "",
-          })
-        }
+      <Form
+        ref={formRef}
+        onSubmit={handleSave}
+        placeholder={undefined}
+        onPointerEnterCapture={undefined}
+        onPointerLeaveCapture={undefined}
       >
-        Adicionar Experiência
-      </Button>
+        <TextField
+          fullWidth
+          label="Objetivo Profissional"
+          name="professionalGoal"
+          value={formData.professionalGoal}
+          onChange={(e) => handleChange("professionalGoal", e.target.value)}
+          disabled={isLoading}
+          margin="normal"
+        />
 
-      {/* Formação Acadêmica */}
-      <Typography variant="h6" gutterBottom>
-        Formação Acadêmica
-      </Typography>
-      {formData.academicBackgroundExperience.map((experience, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <TextField
-            fullWidth
-            label="Organização"
-            value={experience.organization}
-            onChange={(e) =>
-              handleExperienceChange(
-                "academicBackgroundExperience",
-                index,
-                "organization",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Descrição"
-            value={experience.description}
-            onChange={(e) =>
-              handleExperienceChange(
-                "academicBackgroundExperience",
-                index,
-                "description",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-        </Box>
-      ))}
-      <Button
-        variant="outlined"
-        onClick={() =>
-          handleAddItem("academicBackgroundExperience", {
-            organization: "",
-            description: "",
-          })
-        }
-      >
-        Adicionar Formação Acadêmica
-      </Button>
+        {/* Informações Adicionais */}
+        <TextField
+          fullWidth
+          label="Informações Adicionais"
+          name="additionalInfo"
+          value={formData.additionalInfo}
+          onChange={(e) => handleChange("additionalInfo", e.target.value)}
+          disabled={isLoading}
+          margin="normal"
+        />
 
-      {/* Cursos */}
-      <Typography variant="h6" gutterBottom>
-        Cursos
-      </Typography>
-      {formData.courses.map((course, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <TextField
-            fullWidth
-            label="Organização"
-            value={course.organization}
-            onChange={(e) =>
-              handleExperienceChange(
-                "courses",
-                index,
-                "organization",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Descrição"
-            value={course.description}
-            onChange={(e) =>
-              handleExperienceChange(
-                "courses",
-                index,
-                "description",
-                e.target.value
-              )
-            }
-            margin="normal"
-          />
-        </Box>
-      ))}
-      <Button
-        variant="outlined"
-        onClick={() =>
-          handleAddItem("courses", { organization: "", description: "" })
-        }
-      >
-        Adicionar Curso
-      </Button>
+        {/* Experiências Profissionais */}
+        <Typography variant="h6" gutterBottom>
+          Experiências Profissionais
+        </Typography>
+        {formData.professionalExperiences.map((experience, index) => (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            <TextField
+              fullWidth
+              label="Organização"
+              value={experience.organization}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "professionalExperiences",
+                  index,
+                  "organization",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Descrição"
+              value={experience.description}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "professionalExperiences",
+                  index,
+                  "description",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() =>
+            handleAddItem("professionalExperiences", {
+              organization: "",
+              description: "",
+            })
+          }
+        >
+          Adicionar Experiência
+        </Button>
 
-      {/* Habilidades */}
-      <Typography variant="h6" gutterBottom>
-        Habilidades
-      </Typography>
-      {formData.skills.map((skill, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <TextField
-            fullWidth
-            label="Habilidade"
-            value={skill.name}
-            onChange={(e) =>
-              handleExperienceChange("skills", index, "name", e.target.value)
-            }
-            margin="normal"
-          />
-        </Box>
-      ))}
-      <Button
-        variant="outlined"
-        onClick={() => handleAddItem("skills", { name: "" })}
-      >
-        Adicionar Habilidade
-      </Button>
+        {/* Formação Acadêmica */}
+        <Typography variant="h6" gutterBottom>
+          Formação Acadêmica
+        </Typography>
+        {formData.academicBackgroundExperience.map((experience, index) => (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            <TextField
+              fullWidth
+              label="Organização"
+              value={experience.organization}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "academicBackgroundExperience",
+                  index,
+                  "organization",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Descrição"
+              value={experience.description}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "academicBackgroundExperience",
+                  index,
+                  "description",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() =>
+            handleAddItem("academicBackgroundExperience", {
+              organization: "",
+              description: "",
+            })
+          }
+        >
+          Adicionar Formação Acadêmica
+        </Button>
 
-      {/* Idiomas */}
-      <Typography variant="h6" gutterBottom>
-        Idiomas
-      </Typography>
-      {formData.language.map((lang, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <TextField
-            fullWidth
-            label="Idioma"
-            value={lang.language}
-            onChange={(e) => {
-              const updatedLanguages = [...formData.language];
-              updatedLanguages[index] = {
-                ...updatedLanguages[index],
-                language: e.target.value,
-              };
-              setFormData({ ...formData, language: updatedLanguages });
-            }}
-            margin="normal"
-          />
-          <Select
-            fullWidth
-            value={lang.level ?? 0}
-            onChange={(e) => {
-              const updatedLanguages = [...formData.language];
-              updatedLanguages[index] = {
-                ...updatedLanguages[index],
-                level: e.target.value as number,
-              };
-              setFormData({ ...formData, language: updatedLanguages });
-            }}
-            margin="dense"
-          >
-            <MenuItem value={0}>Nenhum</MenuItem>
-            <MenuItem value={1}>Básico</MenuItem>
-            <MenuItem value={2}>Intermediário</MenuItem>
-            <MenuItem value={3}>Avançado</MenuItem>
-            <MenuItem value={4}>Fluente</MenuItem>
-          </Select>
-        </Box>
-      ))}
-      <Button
-        variant="outlined"
-        onClick={() => handleAddItem("language", { language: "", level: 0 })}
-      >
-        Adicionar Idioma
-      </Button>
+        {/* Cursos */}
+        <Typography variant="h6" gutterBottom>
+          Cursos
+        </Typography>
+        {formData.courses.map((course, index) => (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            <TextField
+              fullWidth
+              label="Organização"
+              value={course.organization}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "courses",
+                  index,
+                  "organization",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Descrição"
+              value={course.description}
+              onChange={(e) =>
+                handleExperienceChange(
+                  "courses",
+                  index,
+                  "description",
+                  e.target.value
+                )
+              }
+              margin="normal"
+            />
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() =>
+            handleAddItem("courses", { organization: "", description: "" })
+          }
+        >
+          Adicionar Curso
+        </Button>
 
-      {/* Botão de Salvar */}
-      <Button
-        variant="contained"
-        color="primary"
-        disabled={isLoading}
-        sx={{ marginTop: 2 }}
-        onClick={handleSave}
-      >
-        Salvar Currículo
-      </Button>
+        {/* Habilidades */}
+        <Typography variant="h6" gutterBottom>
+          Habilidades
+        </Typography>
+        {formData.skills.map((skill, index) => (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            <TextField
+              fullWidth
+              label="Habilidade"
+              value={skill.name}
+              onChange={(e) =>
+                handleExperienceChange("skills", index, "name", e.target.value)
+              }
+              margin="normal"
+            />
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() => handleAddItem("skills", { name: "" })}
+        >
+          Adicionar Habilidade
+        </Button>
+
+        {/* Idiomas */}
+        <Typography variant="h6" gutterBottom>
+          Idiomas
+        </Typography>
+        {formData.language.map((lang, index) => (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            <TextField
+              fullWidth
+              label="Idioma"
+              value={lang.language}
+              onChange={(e) => {
+                const updatedLanguages = [...formData.language];
+                updatedLanguages[index] = {
+                  ...updatedLanguages[index],
+                  language: e.target.value,
+                };
+                setFormData({ ...formData, language: updatedLanguages });
+              }}
+              margin="normal"
+            />
+            <Select
+              fullWidth
+              value={lang.level ?? 0}
+              onChange={(e) => {
+                const updatedLanguages = [...formData.language];
+                updatedLanguages[index] = {
+                  ...updatedLanguages[index],
+                  level: e.target.value as number,
+                };
+                setFormData({ ...formData, language: updatedLanguages });
+              }}
+              margin="dense"
+            >
+              <MenuItem value={0}>Nenhum</MenuItem>
+              <MenuItem value={1}>Básico</MenuItem>
+              <MenuItem value={2}>Intermediário</MenuItem>
+              <MenuItem value={3}>Avançado</MenuItem>
+              <MenuItem value={4}>Fluente</MenuItem>
+            </Select>
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() => handleAddItem("language", { language: "", level: 0 })}
+        >
+          Adicionar Idioma
+        </Button>
+
+        {/* Botão de Salvar */}
+        <Button
+          variant="contained"
+          type="submit"
+          color="primary"
+          className="full-width"
+          disabled={isLoading}
+          sx={{ width: "100%", marginTop: 4 }}
+        >
+          Salvar Currículo
+        </Button>
+      </Form>
     </Paper>
   );
 };

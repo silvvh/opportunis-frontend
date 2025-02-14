@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import { ListagemDeCandidatos } from "../pages";
@@ -17,12 +16,13 @@ import CandidateDashboard from "../pages/dashboard/CandidateDashboard";
 import DetalheDeVagas from "../pages/vagas/DetalheDeVagas";
 import { EditCompany } from "../pages/dashboard/EditCompany";
 import { ListagemDeCandidatosVaga } from "../pages/vagas/ListagemDeCandidatosVaga";
+import Curriculum from "../pages/candidato/Curriculum";
+import { Perfil } from "../pages/candidato/Perfil";
 //import { ListagemDeCandidatosVaga } from "../pages/vagas/ListagemDeCandidatosVaga";
 /*<Route path="profile" element={<Perfil />} />
 <Route path="curriculum" element={<Curriculum />} />
 <Route path="/vacancies-candidate" element={<ListagemDeCandidatosVaga/>} />*/
 export const AppRoutes = () => {
-
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -34,10 +34,14 @@ export const AppRoutes = () => {
       </Route>
       <Route path="/company-dashboard" element={<CompanyDashboard />} />
       <Route path="/candidate-dashboard" element={<CandidateDashboard />}>
-
+        <Route path="curriculum" element={<Curriculum />} />
+        <Route path="profile" element={<Perfil />} />
       </Route>
       <Route path="/vacancies/:id" element={<DetalheDeVagas />} />
-      <Route path="/vacancies-candidate" element={<ListagemDeCandidatosVaga/>} />
+      <Route
+        path="/vacancies-candidate"
+        element={<ListagemDeCandidatosVaga />}
+      />
       <Route path="/company-edit" element={<EditCompany />} />
       <Route path="/company-register" element={<CompanyRegister />} />
       <Route path="/candidate-register" element={<CandidateRegister />} />
