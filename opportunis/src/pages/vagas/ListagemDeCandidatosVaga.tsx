@@ -1,31 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { LayoutBaseDePagina } from "../../shared/layouts";
-import { ICandidatures, VagasService } from "../../shared/services/api/vagas/VagasService";
+import { VagasService } from "../../shared/services/api/vagas/VagasService";
 import { IListagemCandidato, IListagemEmpresa } from "../../shared/services/api/auth/AuthService";
 import { IListagemCategory } from "../../shared/services/api/category/CategoryService";
 import { MenuLateral } from "../../shared/components";
-
-
-export interface IListagemVaga {
-  id: number;
-  goal: string;
-  requirements: string;
-  description: string;
-  wage: number;
-  qtdCandidate: number;
-  activate: boolean;
-  company: IListagemEmpresa;
-  candidatures: ICandidatures[];
-  category: IListagemCategory;
-}
-
+import { CandidatureService, IDetalheCandidature } from "../../shared/services/api/candidature/CandidatureService";
+import { CandidatosService, IDetalheCandidato } from "../../shared/services/api/candidatos/CandidatosService";
 
 export const ListagemDeCandidatosVaga: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [candidatures, setCandidatures] = useState<ICandidatures[]>([]);
+  const [candidatur, setCandidatures] = useState<IDetalheCandidature[]>([]);
+  const [candidates, setCandidates] = useState<IDetalheCandidato[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [candidateIds, setCandidateIds] = useState<number[]>([]);
 
   
 
@@ -33,25 +22,42 @@ export const ListagemDeCandidatosVaga: React.FC = () => {
   const vagaId = searchParams.get("vagaId");
 
   useEffect(() => {
-    if (!vagaId) {
-      alert("ID da vaga não foi informado!");
-      navigate("/company-dashboard");
-      return;
-    }
+    const fetchCandidateIds = async () => {
+      setIsLoading(true);
 
-    setIsLoading(true);
-
-    VagasService.getById(Number(vagaId)).then((result) => {
-      setIsLoading(false);
-
-      if (result instanceof Error) {
-        alert(result.message);
+      const result = await CandidatureService.getCandidateIdsByVacancyId(Number(vagaId));
+      if (!(result instanceof Error)) {
+        setCandidateIds(result);
       } else {
-        
-        setCandidatures(result.candidatures || []);
+        console.error(result.message);
       }
-    });
-  }, [vagaId, navigate]);
+
+      setIsLoading(false);
+    };
+
+    fetchCandidateIds();
+  }, [vagaId]);
+
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      setIsLoading(true);
+
+      const fetchedCandidates: IDetalheCandidato[] = [];
+      for (const id of candidateIds) {
+        const result = await CandidatosService.getById(id);
+        if (!(result instanceof Error)) {
+          fetchedCandidates.push(result);
+        } else {
+          console.error(`Erro ao buscar candidato com ID ${id}:`, result.message);
+        }
+      }
+
+      setCandidates(fetchedCandidates);
+      setIsLoading(false);
+    };
+
+    fetchCandidates();
+  }, [candidateIds]);
 
   return (
   <MenuLateral>
@@ -60,7 +66,7 @@ export const ListagemDeCandidatosVaga: React.FC = () => {
         <div className="overflow-x-auto">
           {isLoading ? (
             <p className="text-center p-4">Carregando...</p>
-          ) : candidatures.length > 0 ? (
+          ) : candidates.length > 0 ? (
             <table className="min-w-full bg-white">
               <thead className="bg-black text-white">
                 <tr>
@@ -72,27 +78,18 @@ export const ListagemDeCandidatosVaga: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {candidatures.map((candidature, index) => {
-                  const candidate = candidature.candidate;
-                  console.log(candidature.candidate);
-
-                  if (!candidate) {
-                    console.warn(`Candidature sem candidato no índice ${index}`);
-                    return null; // Ignora essa linha no mapa
-                  }
-
-                  return (
+              {candidates.map((candidate) => (
                     <tr
-                      key={candidate.id || index} // Converte para string como fallback
+                      key={candidate.id}
                       className="border-t border-gray-200 hover:bg-gray-100"
                     >
                       <td className="py-3 px-4">{candidate.name}</td>
                       <td className="py-3 px-4">{candidate.email}</td>
                       <td className="py-3 px-4">{candidate.telephone}</td>
+                      <td className="py-3 px-4">{candidate.cpf}</td>
                       <td className="py-3 px-4">{candidate.genre}</td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
 
 
@@ -106,4 +103,3 @@ export const ListagemDeCandidatosVaga: React.FC = () => {
   </MenuLateral>
   );
 };
-

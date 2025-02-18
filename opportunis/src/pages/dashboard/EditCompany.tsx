@@ -9,6 +9,7 @@ import { EmpresasService } from "../../shared/services/api/empresas/EmpresasServ
 import { FerramentasDeDetalhe, MenuLateral } from "../../shared/components";
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { VTextField } from "../../shared/forms";
+import Cookies from "js-cookie";
 
 // Atualização da interface de dados do formulário
 interface IFormData {
@@ -32,30 +33,28 @@ export const EditCompany: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [nome, setNome] = useState("");
+  const companyId = Cookies.get("id");
 
   useEffect(() => {
-    if (id !== "novo") {
-      setIsLoading(true);
 
-      EmpresasService.getById(Number(id)).then((result) => {
-        setIsLoading(false);
+    EmpresasService.getById(Number(companyId)).then((result) => {
+      setIsLoading(false);
 
-        if (result instanceof Error) {
-          alert(result.message);
-          navigate("/admin-dashboard/empresas");
-        } else {
-          setNome(result.name);
-          formRef.current?.setData(result); // Preenche os dados no formulário
-        }
-      });
-    }
+      if (result instanceof Error) {
+        alert(result.message);
+        navigate("/company-dashboard");
+      } else {
+        setNome(result.name);
+        formRef.current?.setData(result); // Preenche os dados no formulário
+      }
+    });
   }, [id, navigate]);
 
   const handleSave = (dados: IFormData) => {
     setIsLoading(true);
 
-    EmpresasService.updateById(Number(id), {
-      id: Number(id),
+    EmpresasService.updateById(Number(companyId), {
+      id: Number(companyId),
       ...dados, // Envia todos os dados
       password: "", // Você pode querer limpar a senha se for um campo opcional
     }).then((result) => {
@@ -65,7 +64,7 @@ export const EditCompany: React.FC = () => {
         alert(result.message);
       } else {
         alert("Dados atualizados com sucesso!");
-        navigate("/admin-dashboard/empresas");
+        navigate("/company-dashboard");
       }
     });
   };
@@ -77,7 +76,7 @@ export const EditCompany: React.FC = () => {
           alert(result.message);
         } else {
           alert("Registro apagado com sucesso!");
-          navigate("/admin-dashboard/empresas");
+          navigate("/company-dashboard");
         }
       });
     }
@@ -85,131 +84,128 @@ export const EditCompany: React.FC = () => {
 
   return (
     <MenuLateral>
-      <LayoutBaseDePagina
-        titulo={id === "novo" ? "Nova empresa" : nome}
-        barraDeFerramentas={
-          <FerramentasDeDetalhe
-            textoBotaoNovo="Novo"
-            mostrarBotaoNovo={id !== "novo"}
-            mostrarBotaoApagar={id !== "novo"}
-            aoClicarEmVoltar={() => navigate("/company-dashboard")}
-            aoClicarEmApagar={() => handleDelete(Number(id))}
-            aoClicarEmSalvar={() => formRef.current?.submitForm()}
-            aoClicarEmNovo={() => navigate("/admin-dashboard/empresa/novo")}
-          />
-        }
+      <Box
+        margin={1}
+        display="flex"
+        flexDirection="column"
+        component={Paper}
+        variant="outlined"
+        sx={{
+          maxWidth: "100%", // Limita a largura ao tamanho da tela
+          height: "calc(100vh - 16px)", // Ocupa a altura da viewport, descontando margens
+          overflow: "hidden", // Remove scrolls extras
+          boxSizing: "border-box", // Inclui padding e borda no tamanho
+        }}
       >
         <Form
           ref={formRef}
           onSubmit={handleSave}
-          placeholder={undefined} // Resolve o problema do placeholder
-          onPointerEnterCapture={undefined} // Resolve o problema do onPointerEnterCapture
-          onPointerLeaveCapture={undefined} // Resolve o problema do onPointerLeaveCapture
-        >
+          style={{
+            height: "100%", // Garante que o formulário ocupe todo o espaço disponível
+          }} 
+          placeholder={undefined} 
+          onPointerEnterCapture={undefined} 
+          onPointerLeaveCapture={undefined}        >
+          {/* Cabeçalho do formulário */}
           <Box
-            margin={1}
             display="flex"
-            flexDirection="column"
-            component={Paper}
-            variant="outlined"
+            justifyContent="space-between"
+            alignItems="center"
+            padding={2}
+            borderBottom="1px solid #e0e0e0"
+            sx={{
+              flexShrink: 0, // Impede que o cabeçalho seja redimensionado
+            }}
           >
-            <Grid container direction="column" padding={2} spacing={2}>
-              {isLoading && (
-                <Grid item>
-                  <LinearProgress variant="indeterminate" />
-                </Grid>
-              )}
+            <Typography variant="h6">Altere seus Dados</Typography>
+            <button
+              type="submit"
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#ffd600",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+              disabled={isLoading}
+            >
+              Salvar
+            </button>
+          </Box>
 
-              <Grid item>
-                <Typography variant="h6">
-                  Atualize as Informações de sua empresa
-                </Typography>
+          {/* Conteúdo do formulário */}
+          <Box
+            padding={2}
+            overflow="auto" // Permite scroll apenas para o conteúdo principal se necessário
+            sx={{
+              height: "calc(100% - 56px)", // Subtrai a altura do cabeçalho do total
+            }}
+          >
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="name"
+                  label="Nome"
+                  disabled={isLoading}
+                  onChange={(e) => setNome(e.target.value)}
+                />
               </Grid>
-
-              {/* Campos do formulário para edição */}
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="name"
-                    label="Nome"
-                    disabled={isLoading}
-                    onChange={(e) => setNome(e.target.value)}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="email"
+                  label="Email"
+                  disabled={isLoading}
+                />
               </Grid>
-
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="email"
-                    label="Email"
-                    disabled={isLoading}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="telephone"
+                  label="Telefone"
+                  disabled={isLoading}
+                />
               </Grid>
-
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="telephone"
-                    label="Telefone"
-                    disabled={isLoading}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="cnpj"
+                  label="CNPJ"
+                  disabled={isLoading}
+                />
               </Grid>
-
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="cnpj"
-                    label="CNPJ"
-                    disabled={isLoading}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="nationality"
+                  label="Nacionalidade"
+                  disabled={isLoading}
+                />
               </Grid>
-
-              {/* Campos adicionais */}
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="nacionality"
-                    label="Nacionalidade"
-                    disabled={isLoading}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="qtdEmployee"
+                  label="Quantidade de Funcionários"
+                  type="number"
+                  disabled={isLoading}
+                />
               </Grid>
-
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="qtd_employee"
-                    label="Quantidade de Funcionários"
-                    type="number"
-                    disabled={isLoading}
-                  />
-                </Grid>
-              </Grid>
-
-              <Grid container item direction="row" spacing={2}>
-                <Grid item xs={12} sm={12} md={6} lg={4} xl={2}>
-                  <VTextField
-                    fullWidth
-                    name="site"
-                    label="Site"
-                    disabled={isLoading}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <VTextField
+                  fullWidth
+                  name="site"
+                  label="Site"
+                  disabled={isLoading}
+                />
               </Grid>
             </Grid>
           </Box>
         </Form>
-      </LayoutBaseDePagina>
+      </Box>
     </MenuLateral>
+
   );
 };

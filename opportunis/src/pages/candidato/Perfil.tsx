@@ -50,6 +50,7 @@ export const Perfil: React.FC = () => {
 
         if (result instanceof Error) {
           alert(result.message);
+          navigate("/admin-dashboard/candidatos");
         } else {
           setNome(result.name);
           const formData = { ...result };
@@ -80,6 +81,7 @@ export const Perfil: React.FC = () => {
           alert(result.message);
         } else {
           alert("Registro apagado com sucesso!");
+          navigate("/admin-dashboard/empresas");
         }
       });
     }

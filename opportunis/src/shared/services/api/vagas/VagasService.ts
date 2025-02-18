@@ -1,22 +1,11 @@
 import { Api } from "../axios-config";
 import { Environment } from "../../../environment";
 
-import { IListagemEmpresa } from "../empresas/EmpresasService";
-import { IListagemCategory } from "../category/CategoryService";
-import { IListagemCandidato } from "../candidatos/CandidatosService";
-
-export interface IEmpresa {
-  id: number;
-}
-
-export interface ICategory {
-  id: number;
-}
-
-export interface ICandidatures {
-  date: Date;
-  candidate: IListagemCandidato;
-}
+import { IDetalheEmpresa, IListagemEmpresa } from "../empresas/EmpresasService";
+import {
+  IDetalheCategory,
+  IListagemCategory,
+} from "../category/CategoryService";
 
 export interface IListagemVaga {
   id: number;
@@ -26,9 +15,24 @@ export interface IListagemVaga {
   wage: number;
   qtdCandidate: number;
   activate: boolean;
-  company: IListagemEmpresa;
-  candidatures: ICandidatures[];
   category: IListagemCategory;
+  company: IListagemEmpresa;
+}
+
+export interface ICreateVaga {
+  id: number;
+  goal: string;
+  requirements: string;
+  description: string;
+  wage: number;
+  qtdCandidate: number;
+  activate: boolean;
+  category: {
+    id: number;
+  }; // Alterado para um único objeto
+  company: {
+    id: number;
+  }; // Alterado para um único objeto
 }
 
 export interface IDetalheVaga {
@@ -39,17 +43,13 @@ export interface IDetalheVaga {
   wage: number;
   qtdCandidate: number;
   activate: boolean;
-  category: ICategory; // Alterado para um único objeto
-  company: IEmpresa; // Alterado para um único objeto
+  category: IDetalheCategory; // Alterado para um único objeto
+  company: IDetalheEmpresa; // Alterado para um único objeto
 }
 
 type TVagasComTotalCount = {
   data: IListagemVaga[];
   totalCount: number;
-};
-
-type TVagaComTotalCount = {
-  data: IListagemVaga;
 };
 
 const getAll = async (
@@ -62,7 +62,6 @@ const getAll = async (
     }&name_like=${filter}`;
 
     const { data } = await Api.get(urlRelativa);
-
     if (data && data.content) {
       return {
         data: data.content.map((vaga: any) => ({
@@ -74,7 +73,6 @@ const getAll = async (
           qtdCandidate: vaga.qtdCandidate,
           activate: vaga.activate,
           category: vaga.category,
-          candidatures: vaga.candidatures,
           company: vaga.company,
         })),
         totalCount: data.totalElements,
@@ -90,11 +88,21 @@ const getAll = async (
   }
 };
 
+const getTopVagas = async (): Promise<any> => {
+  const { data } = await Api.get("/vacancies/hottest");
+  console.debug(data);
+  return data.map((vaga: any) => ({
+    id: vaga.id,
+    description: vaga.description,
+    title: vaga.company.name,
+  }));
+};
+
 const create = async (
-  dados: Omit<IDetalheVaga, "id">
+  dados: Omit<ICreateVaga, "id">
 ): Promise<number | Error> => {
   try {
-    const { data } = await Api.post<IDetalheVaga>("/vacancies", dados);
+    const { data } = await Api.post<ICreateVaga>("/vacancies", dados);
 
     if (data) {
       return data.id;
@@ -105,36 +113,6 @@ const create = async (
     console.error(error);
     return new Error(
       (error as { message: string }).message || "Erro ao criar o registro."
-    );
-  }
-};
-
-const getById = async (id: number): Promise<IListagemVaga | Error> => {
-  try {
-    const { data } = await Api.get(`/vacancies/${id}`);
-    console.log(data);
-
-    if (data) {
-      // Retorna os dados da vaga no formato esperado
-      return {
-        id: data.id,
-        goal: data.goal,
-        requirements: data.requirements,
-        description: data.description,
-        wage: data.wage,
-        qtdCandidate: data.qtdCandidate,
-        activate: data.activate,
-        category: data.category,
-        candidatures: data.candidatures,
-        company: data.company,
-      };
-    }
-
-    return new Error("Erro ao consultar o registro.");
-  } catch (error) {
-    console.error(error);
-    return new Error(
-      (error as { message: string }).message || "Erro ao consultar o registro."
     );
   }
 };
@@ -150,11 +128,11 @@ const deleteById = async (id: number): Promise<void | Error> => {
   }
 };
 
-
 export const VagasService = {
   getAll,
   create,
-  getById,
+  getTopVagas,
+  //getById,
   //updateById,
   deleteById,
 };
