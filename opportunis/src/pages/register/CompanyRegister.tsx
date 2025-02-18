@@ -4,12 +4,13 @@ import { AuthService } from "../../shared/services/api/auth/AuthService";
 
 const CompanyRegister: React.FC = () => {
   interface FormData {
+    categoryId: number;
     name: string;
     email: string;
     password: string;
     telephone: string;
     cnpj: string;
-    category: string;
+    category: any;
     role: "ENTERPRISE";
   }
 
@@ -29,6 +30,7 @@ const CompanyRegister: React.FC = () => {
     telephone: "",
     cnpj: "",
     category: "",
+    categoryId: 1,
     role: "ENTERPRISE",
   });
 
@@ -72,8 +74,9 @@ const CompanyRegister: React.FC = () => {
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     if (validateForm()) {
+      formData.categoryId = 1;
+      console.debug(formData);
       AuthService.companyRegister(formData).then((result) => {
         if (result instanceof Error) {
           alert(result.message);

@@ -77,6 +77,8 @@ const create = async (
   dados: Omit<IDetalheEmpresa, "id">
 ): Promise<number | Error> => {
   try {
+    dados.category_id = 1;
+    console.debug(dados);
     const { data } = await Api.post<IDetalheEmpresa>("/companies", dados);
 
     if (data) {
