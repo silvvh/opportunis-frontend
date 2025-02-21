@@ -33,7 +33,7 @@ const Login = () => {
     AuthService.login({ email, password }).then(
       (result: { id: string; role: any; token: any; message: any }) => {
         if (result instanceof Error) {
-          alert(result.message);
+          alert("Email ou senha incorretos. Tente novamente.");
         } else {
           Cookies.set("token", result.token, {
             sameSite: "None",

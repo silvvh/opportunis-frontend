@@ -58,7 +58,7 @@ const getTopVagas = async (): Promise<any> => {
   return data.map((vaga: any) => ({
     id: vaga.id,
     description: vaga.description,
-    title: vaga.company.name,
+    title: vaga.goal,
   }));
 };
 

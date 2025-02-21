@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import Header from "../../shared/components/Header";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   Typography,
   Button,
@@ -47,7 +47,7 @@ const settings = {
 
 const getAll = async (): Promise<any | Error> => {
   const data = await VagasService.getTopVagas();
-
+  console.debug(data);
   return data;
 };
 
@@ -59,6 +59,8 @@ const Home = () => {
       id: number;
     }[]
   >([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getAll = async () => {
@@ -162,6 +164,7 @@ const Home = () => {
                   color="primary"
                   fullWidth
                   style={{ marginTop: "16px" }}
+                  onClick={() => navigate("/candidate-register")}
                 >
                   Acessar
                 </Button>
