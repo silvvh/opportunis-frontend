@@ -9,7 +9,7 @@ const CompanyRegister: React.FC = () => {
     password: string;
     telephone: string;
     cnpj: string;
-    category: string;
+    category: number;
     role: "ENTERPRISE";
   }
 
@@ -19,7 +19,7 @@ const CompanyRegister: React.FC = () => {
     password?: string;
     telephone?: string;
     cnpj?: string;
-    category?: string;
+    category?: number | string;
   }
 
   const [formData, setFormData] = useState<FormData>({
@@ -28,7 +28,7 @@ const CompanyRegister: React.FC = () => {
     password: "",
     telephone: "",
     cnpj: "",
-    category: "",
+    category: 1,
     role: "ENTERPRISE",
   });
 
@@ -210,7 +210,7 @@ const CompanyRegister: React.FC = () => {
                 >
                   <option value="">Selecione a categoria</option>
                   {categories.map((cat, index) => (
-                    <option key={index} value={cat}>
+                    <option key={index} value={index + 1}>
                       {cat}
                     </option>
                   ))}

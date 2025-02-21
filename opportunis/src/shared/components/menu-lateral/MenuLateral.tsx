@@ -47,6 +47,8 @@ const ListItemLink: React.FC<IListItemLinkProps> = ({
   );
 };
 
+
+
 export const MenuLateral: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
@@ -55,6 +57,7 @@ export const MenuLateral: React.FC<React.PropsWithChildren<{}>> = ({
 
   const { isDrawerOpen, drawerOptions, toggleDrawerOpen } = useDrawerContext();
   const { toggleTheme } = useAppThemeContext();
+
 
   return (
     <>

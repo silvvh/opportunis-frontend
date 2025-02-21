@@ -1,7 +1,14 @@
 /* eslint-disable no-restricted-globals */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Grid,
+  LinearProgress,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 
@@ -25,7 +32,7 @@ export const DetalheDeCandidatos: React.FC = () => {
   const navigate = useNavigate();
 
   const formRef = useRef<FormHandles>(null);
-
+  const [error, setError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [nome, setNome] = useState("");
 
@@ -37,8 +44,10 @@ export const DetalheDeCandidatos: React.FC = () => {
         setIsLoading(false);
 
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
           navigate("/admin-dashboard/candidatos");
+          return () => clearTimeout(timer);
         } else {
           setNome(result.name);
           const formData = { ...result, password: "" };
@@ -46,7 +55,7 @@ export const DetalheDeCandidatos: React.FC = () => {
         }
       });
     }
-  }, [id, navigate]);
+  }, [id, navigate, error]);
 
   const handleSave = (dados: IFormData) => {
     setIsLoading(true);
@@ -56,7 +65,9 @@ export const DetalheDeCandidatos: React.FC = () => {
         setIsLoading(false);
 
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         } else {
           navigate(`/admin-dashboard/candidato/${result}`);
         }
@@ -69,7 +80,9 @@ export const DetalheDeCandidatos: React.FC = () => {
         setIsLoading(false);
 
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         }
       });
     }
@@ -79,7 +92,9 @@ export const DetalheDeCandidatos: React.FC = () => {
     if (confirm("Realmente deseja apagar?")) {
       CandidatosService.deleteById(id).then((result) => {
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         } else {
           alert("Registro apagado com sucesso!");
           navigate("/admin-dashboard/candidatos");
@@ -198,6 +213,7 @@ export const DetalheDeCandidatos: React.FC = () => {
           </Grid>
         </Box>
       </Form>
+      {error && <Alert severity="error">Falha ao salvar</Alert>}
     </LayoutBaseDePagina>
   );
 };

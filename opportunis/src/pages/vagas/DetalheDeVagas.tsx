@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
+import Cookies from "js-cookie";
 import {
   Box,
   Button,
   TextField,
   MenuItem,
-  Typography,
   FormControl,
   InputLabel,
   Select,
@@ -16,11 +16,12 @@ import {
 import { LayoutBaseDePagina } from "../../shared/layouts";
 import { FerramentasDeDetalhe, MenuLateral } from "../../shared/components";
 import { useNavigate, useParams } from "react-router-dom";
-import { IListagemEmpresa } from "../../shared/services/api/auth/AuthService";
-import { VagasService } from "../../shared/services/api/vagas/VagasServie";
+import { VagasService } from "../../shared/services/api/vagas/VagasService";
+
 const DetalheDeVagas = () => {
   const { id = "nova" } = useParams<"id">();
   const navigate = useNavigate();
+
   const [goal, setGoal] = useState("");
   const [requirements, setRequirements] = useState("");
   const [description, setDescription] = useState("");
@@ -28,9 +29,11 @@ const DetalheDeVagas = () => {
   const [qtdCandidate, setQtdCandidate] = useState(0);
   const [activate, setActivate] = useState(true);
   const [categoryId, setCategoryId] = useState(0);
-  const [companyId, setCompanyId] = useState(0);
   const [categories, setCategories] = useState<IListagemCategory[]>([]);
-  const [company, setCompany] = useState<IListagemEmpresa[]>([]);
+
+  // Obtém o ID da empresa dos cookies
+  const companyId = Cookies.get("id");
+
   useEffect(() => {
     // Busca as categorias
     CategoryService.getAll().then((result) => {
@@ -41,7 +44,13 @@ const DetalheDeVagas = () => {
       }
     });
   }, []);
+
   const handleSubmit = () => {
+    if (!companyId) {
+      alert("ID da empresa não encontrado nos cookies.");
+      return;
+    }
+
     const novaVaga = {
       goal,
       requirements,
@@ -50,7 +59,7 @@ const DetalheDeVagas = () => {
       qtdCandidate,
       activate,
       category: { id: categoryId }, // Passando o ID dentro de um objeto
-      company: { id: companyId }, // Passando o ID dentro de um objeto
+      company: { id: Number(companyId) }, // Passando o ID da empresa dos cookies
     };
 
     VagasService.create(novaVaga).then((result) => {
@@ -58,6 +67,7 @@ const DetalheDeVagas = () => {
         alert("Erro ao criar vaga: " + result.message);
       } else {
         alert("Vaga criada com sucesso!");
+        navigate("/company-dashboard");
       }
     });
   };
@@ -83,6 +93,7 @@ const DetalheDeVagas = () => {
             label="Objetivo da vaga"
             fullWidth
             margin="normal"
+            variant="outlined" // Adicionado para manter o label no topo
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
           />
@@ -90,6 +101,7 @@ const DetalheDeVagas = () => {
             label="Requisitos"
             fullWidth
             margin="normal"
+            variant="outlined" // Adicionado para manter o label no topo
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
           />
@@ -97,30 +109,16 @@ const DetalheDeVagas = () => {
             label="Descrição"
             fullWidth
             margin="normal"
+            variant="outlined" // Adicionado para manter o label no topo
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <TextField
-            label="Salário"
-            fullWidth
-            margin="normal"
-            type="number"
-            value={wage}
-            onChange={(e) => setWage(Number(e.target.value))}
-          />
-          <TextField
-            label="Quantidade de Candidatos"
-            fullWidth
-            margin="normal"
-            type="number"
-            value={qtdCandidate}
-            onChange={(e) => setQtdCandidate(Number(e.target.value))}
-          />
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" variant="outlined">
             <InputLabel>Categoria</InputLabel>
             <Select
               value={categoryId}
               onChange={(e) => setCategoryId(Number(e.target.value))} // Conversão para número
+              label="Categoria"
             >
               {categories.map((category) => (
                 <MenuItem key={category.id} value={category.id}>
@@ -130,11 +128,22 @@ const DetalheDeVagas = () => {
             </Select>
           </FormControl>
           <TextField
-            label="Empresa"
+            label="Salário"
             fullWidth
             margin="normal"
-            value={companyId}
-            onChange={(e) => setCompanyId(Number(e.target.value))}
+            type="number"
+            variant="outlined"
+            value={wage}
+            onChange={(e) => setWage(Number(e.target.value))}
+          />
+          <TextField
+            label="Quantidade de Candidatos"
+            fullWidth
+            margin="normal"
+            type="number"
+            variant="outlined"
+            value={qtdCandidate}
+            onChange={(e) => setQtdCandidate(Number(e.target.value))}
           />
           <Button
             variant="contained"
@@ -150,4 +159,5 @@ const DetalheDeVagas = () => {
     </MenuLateral>
   );
 };
+
 export default DetalheDeVagas;
