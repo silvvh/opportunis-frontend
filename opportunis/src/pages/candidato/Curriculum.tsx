@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   TextField,
   Typography,
@@ -13,34 +13,38 @@ import Cookies from "js-cookie";
 import { CurriculumService } from "../../shared/services/api/candidatos/CurriculumService";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
-import { SpaceBar } from "@mui/icons-material";
 
 interface IFormData {
-  candidate: { id: number | undefined };
+  id?: number | null | undefined;
+  candidate?: { id: number | undefined };
   professionalGoal: string;
   additionalInfo: string;
   professionalExperiences: { organization: string; description: string }[];
   academicBackgroundExperience: { organization: string; description: string }[];
-  courses: { organization: string; description: string }[];
-  language: { language: string; level: number }[];
+  coursesExperiences: { organization: string; description: string }[];
+  languages: { language: string; level: number }[];
   skills: { name: string }[];
 }
 
 const Curriculum: React.FC = () => {
   const [formData, setFormData] = useState<IFormData>({
+    id: null,
     candidate: { id: Number(Cookies.get("id")) },
     professionalGoal: "",
     additionalInfo: "",
     professionalExperiences: [],
     academicBackgroundExperience: [],
-    courses: [],
-    language: [],
+    coursesExperiences: [],
+    languages: [],
     skills: [],
   });
 
   const formRef = useRef<FormHandles>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [curriculumId, setCurriculumId] = useState<Number | null | undefined>(
+    -1
+  );
 
   // Handlers
   const handleChange = (field: string, value: string) => {
@@ -48,7 +52,11 @@ const Curriculum: React.FC = () => {
   };
 
   const handleSave = () => {
-    CurriculumService.save(formData);
+    if (curriculumId !== -1) {
+      CurriculumService.update(Number(curriculumId), formData, token);
+    } else {
+      CurriculumService.save(formData);
+    }
   };
 
   const handleAddItem = <K extends keyof IFormData>(
@@ -77,6 +85,25 @@ const Curriculum: React.FC = () => {
       console.error(`O campo ${field} não é um array.`);
     }
   };
+
+  const id = Cookies.get("id");
+  const token = Cookies.get("token");
+
+  useEffect(() => {
+    CurriculumService.getByCandidateId(Number(id)).then((result) => {
+      setIsLoading(false);
+
+      if (result instanceof Error) {
+        alert(result.message);
+      } else {
+        if (result != null) {
+          formRef.current?.setData(result);
+          setFormData(result);
+          setCurriculumId(result.id);
+        }
+      }
+    });
+  }, [id]);
 
   return (
     <Paper
@@ -217,7 +244,7 @@ const Curriculum: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Cursos
         </Typography>
-        {formData.courses.map((course, index) => (
+        {formData.coursesExperiences.map((course, index) => (
           <Box key={index} sx={{ marginBottom: 2 }}>
             <TextField
               fullWidth
@@ -225,7 +252,7 @@ const Curriculum: React.FC = () => {
               value={course.organization}
               onChange={(e) =>
                 handleExperienceChange(
-                  "courses",
+                  "coursesExperiences",
                   index,
                   "organization",
                   e.target.value
@@ -239,7 +266,7 @@ const Curriculum: React.FC = () => {
               value={course.description}
               onChange={(e) =>
                 handleExperienceChange(
-                  "courses",
+                  "coursesExperiences",
                   index,
                   "description",
                   e.target.value
@@ -252,7 +279,10 @@ const Curriculum: React.FC = () => {
         <Button
           variant="outlined"
           onClick={() =>
-            handleAddItem("courses", { organization: "", description: "" })
+            handleAddItem("coursesExperiences", {
+              organization: "",
+              description: "",
+            })
           }
         >
           Adicionar Curso
@@ -286,19 +316,19 @@ const Curriculum: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Idiomas
         </Typography>
-        {formData.language.map((lang, index) => (
+        {formData.languages.map((lang, index) => (
           <Box key={index} sx={{ marginBottom: 2 }}>
             <TextField
               fullWidth
               label="Idioma"
               value={lang.language}
               onChange={(e) => {
-                const updatedLanguages = [...formData.language];
+                const updatedLanguages = [...formData.languages];
                 updatedLanguages[index] = {
                   ...updatedLanguages[index],
                   language: e.target.value,
                 };
-                setFormData({ ...formData, language: updatedLanguages });
+                setFormData({ ...formData, languages: updatedLanguages });
               }}
               margin="normal"
             />
@@ -306,12 +336,12 @@ const Curriculum: React.FC = () => {
               fullWidth
               value={lang.level ?? 0}
               onChange={(e) => {
-                const updatedLanguages = [...formData.language];
+                const updatedLanguages = [...formData.languages];
                 updatedLanguages[index] = {
                   ...updatedLanguages[index],
                   level: e.target.value as number,
                 };
-                setFormData({ ...formData, language: updatedLanguages });
+                setFormData({ ...formData, languages: updatedLanguages });
               }}
               margin="dense"
             >
@@ -325,7 +355,7 @@ const Curriculum: React.FC = () => {
         ))}
         <Button
           variant="outlined"
-          onClick={() => handleAddItem("language", { language: "", level: 0 })}
+          onClick={() => handleAddItem("languages", { language: "", level: 0 })}
         >
           Adicionar Idioma
         </Button>
