@@ -45,7 +45,7 @@ export interface IDetalheEmpresa {
   telephone: string;
   password: string;
   cnpj: string;
-  category: string;
+  category: string | number | object;
   role: string;
 }
 
@@ -80,6 +80,10 @@ const companyRegister = async (
   dados: Omit<IDetalheEmpresa, "id">
 ): Promise<any | Error> => {
   try {
+    let category = {
+      id: dados.category,
+    };
+    dados.category = category;
     const data = await Api.post<IDetalheCandidato>(
       "/auth/company-register",
       dados

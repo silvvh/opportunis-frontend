@@ -8,6 +8,7 @@ import {
   MenuItem,
   Box,
   Button,
+  Alert,
 } from "@mui/material";
 import Cookies from "js-cookie";
 import { CurriculumService } from "../../shared/services/api/candidatos/CurriculumService";
@@ -28,7 +29,7 @@ interface IFormData {
 
 const Curriculum: React.FC = () => {
   const [formData, setFormData] = useState<IFormData>({
-    id: null,
+    id: -1,
     candidate: { id: Number(Cookies.get("id")) },
     professionalGoal: "",
     additionalInfo: "",
@@ -52,11 +53,7 @@ const Curriculum: React.FC = () => {
   };
 
   const handleSave = () => {
-    if (curriculumId !== -1) {
-      CurriculumService.update(Number(curriculumId), formData, token);
-    } else {
-      CurriculumService.save(formData);
-    }
+    CurriculumService.save(formData, Number(Cookies.get("id")));
   };
 
   const handleAddItem = <K extends keyof IFormData>(
@@ -70,6 +67,8 @@ const Curriculum: React.FC = () => {
       });
     }
   };
+
+  const [error, setError] = useState<boolean>(false);
 
   const handleExperienceChange = <K extends keyof IFormData>(
     field: K,
@@ -94,7 +93,9 @@ const Curriculum: React.FC = () => {
       setIsLoading(false);
 
       if (result instanceof Error) {
-        alert(result.message);
+        setError(true);
+        const timer = setTimeout(() => setError(false), 3000);
+        return () => clearTimeout(timer);
       } else {
         if (result != null) {
           formRef.current?.setData(result);
@@ -103,7 +104,7 @@ const Curriculum: React.FC = () => {
         }
       }
     });
-  }, [id]);
+  }, [id, error]);
 
   return (
     <Paper
@@ -372,6 +373,7 @@ const Curriculum: React.FC = () => {
           Salvar Currículo
         </Button>
       </Form>
+      {error && <Alert severity="error">Falha ao salvar currículo</Alert>}
     </Paper>
   );
 };

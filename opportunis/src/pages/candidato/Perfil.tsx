@@ -11,6 +11,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Alert,
 } from "@mui/material";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
@@ -40,6 +41,7 @@ export const Perfil: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [nome, setNome] = useState("");
+  const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
     if (id !== "novo") {
@@ -49,8 +51,10 @@ export const Perfil: React.FC = () => {
         setIsLoading(false);
 
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
           navigate("/admin-dashboard/candidatos");
+          return () => clearTimeout(timer);
         } else {
           setNome(result.name);
           const formData = { ...result };
@@ -58,7 +62,7 @@ export const Perfil: React.FC = () => {
         }
       });
     }
-  }, [id, navigate]);
+  }, [id, navigate, error]);
 
   const handleSave = (dados: IFormData) => {
     setIsLoading(true);
@@ -69,7 +73,9 @@ export const Perfil: React.FC = () => {
       setIsLoading(false);
 
       if (result instanceof Error) {
-        alert(result.message);
+        setError(true);
+        const timer = setTimeout(() => setError(false), 3000);
+        return () => clearTimeout(timer);
       }
     });
   };
@@ -78,7 +84,9 @@ export const Perfil: React.FC = () => {
     if (confirm("Realmente deseja apagar?")) {
       EmpresasService.deleteById(id).then((result) => {
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         } else {
           alert("Registro apagado com sucesso!");
           navigate("/admin-dashboard/empresas");
@@ -175,6 +183,7 @@ export const Perfil: React.FC = () => {
           </Grid>
         </Box>
       </Form>
+      {error && <Alert severity="error">Falha ao salvar</Alert>}
     </LayoutBaseDePagina>
   );
 };

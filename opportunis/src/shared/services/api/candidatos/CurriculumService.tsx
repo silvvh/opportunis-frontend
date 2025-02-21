@@ -12,10 +12,10 @@ export interface ICurriculo {
   skills: { name: string }[];
 }
 
-const save = async (dados: ICurriculo): Promise<void | Error> => {
+const save = async (dados: ICurriculo, id: Number): Promise<void | Error> => {
   try {
-    delete dados.id;
-    await Api.post(`/candidates/curriculumns`, dados);
+    delete dados.candidate;
+    await Api.post(`/candidates/${id}/curriculumns`, dados);
   } catch (error) {
     console.error(error);
     return new Error(

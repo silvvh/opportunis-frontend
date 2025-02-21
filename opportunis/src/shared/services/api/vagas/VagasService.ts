@@ -1,22 +1,22 @@
 import { Api } from "../axios-config";
 import { Environment } from "../../../environment";
 
+import { IDetalheEmpresa, IListagemEmpresa } from "../empresas/EmpresasService";
 import {
-  IDetalheEmpresa,
-    IListagemEmpresa,
-} from "../empresas/EmpresasService";
-import { IDetalheCategory, IListagemCategory } from "../category/CategoryService";
+  IDetalheCategory,
+  IListagemCategory,
+} from "../category/CategoryService";
 
 export interface IListagemVaga {
-    id: number;
-    goal: string;
-    requirements: string;
-    description: string;
-    wage: number;
-    qtdCandidate: number;
-    activate: boolean;
-    category: IListagemCategory;
-    company: IListagemEmpresa;
+  id: number;
+  goal: string;
+  requirements: string;
+  description: string;
+  wage: number;
+  qtdCandidate: number;
+  activate: boolean;
+  category: IListagemCategory;
+  company: IListagemEmpresa;
 }
 
 export interface ICreateVaga {
@@ -32,60 +32,71 @@ export interface ICreateVaga {
   }; // Alterado para um único objeto
   company: {
     id: number;
-  };  // Alterado para um único objeto
+  }; // Alterado para um único objeto
 }
 
 export interface IDetalheVaga {
-    id: number;
-    goal: string;
-    requirements: string;
-    description: string;
-    wage: number;
-    qtdCandidate: number;
-    activate: boolean;
-    category: IDetalheCategory; // Alterado para um único objeto
-    company: IDetalheEmpresa;  // Alterado para um único objeto
+  id: number;
+  goal: string;
+  requirements: string;
+  description: string;
+  wage: number;
+  qtdCandidate: number;
+  activate: boolean;
+  category: IDetalheCategory; // Alterado para um único objeto
+  company: IDetalheEmpresa; // Alterado para um único objeto
 }
 
-
 type TVagasComTotalCount = {
-    data: IListagemVaga[];
-    totalCount: number;
+  data: IListagemVaga[];
+  totalCount: number;
+};
+
+const getTopVagas = async (): Promise<any> => {
+  const { data } = await Api.get("/vacancies/hottest");
+  console.debug(data);
+  return data.map((vaga: any) => ({
+    id: vaga.id,
+    description: vaga.description,
+    title: vaga.company.name,
+  }));
 };
 
 const getAll = async (
-    page = 1,
-    filter = ""
+  page = 1,
+  filter = ""
 ): Promise<TVagasComTotalCount | Error> => {
-    try {
-        const urlRelativa = `/vacancies?page=${page - 1}&size=${Environment.LIMITE_DE_LINHAS}&name_like=${filter}`;
+  try {
+    const urlRelativa = `/vacancies?page=${page - 1}&size=${
+      Environment.LIMITE_DE_LINHAS
+    }&name_like=${filter}`;
 
-        const { data } = await Api.get(urlRelativa);
+    const { data } = await Api.get(urlRelativa);
 
-        if (data && data.content) {
-            return {
-                data: data.content.map((vaga: any) => ({
-                    id: vaga.id,
-                    goal: vaga.goal,
-                    requirements: vaga.requirements,
-                    description: vaga.description,
-                    wage: vaga.wage,
-                    qtdCandidate: vaga.qtdCandidate,
-                    activate: vaga.activate,
-                    category: vaga.category,
-                    company: vaga.company,
-                })),
-                totalCount: data.totalElements,
-            };
-        }
-
-        return new Error("Erro ao listar os registros.");
-    } catch (error) {
-        console.error(error);
-        return new Error(
-            (error as { message: string }).message || "Erro ao listar os registros."
-        );
+    if (data && data.content) {
+      return {
+        data: data.content.map((vaga: any) => ({
+          id: vaga.id,
+          goal: vaga.goal,
+          requirements: vaga.requirements,
+          description: vaga.description,
+          wage: vaga.wage,
+          qtdCandidate: vaga.qtdCandidate,
+          activate: vaga.activate,
+          category: vaga.category,
+          company: vaga.company,
+        })),
+        totalCount: data.totalElements,
+      };
     }
+
+    return new Error("Erro ao listar os registros.");
+  } catch (error) {
+    console.error(error);
+    return new Error(
+      (error as { message: string }).message || "Erro ao listar os registros."
+    );
+  }
 };
 
 const create = async (
@@ -118,11 +129,11 @@ const deleteById = async (id: number): Promise<void | Error> => {
   }
 };
 
-
 export const VagasService = {
-    getAll,
-    create,
-    //getById,
-    //updateById,
-    deleteById,
+  getAll,
+  create,
+  //getById,
+  //updateById,
+  deleteById,
+  getTopVagas,
 };

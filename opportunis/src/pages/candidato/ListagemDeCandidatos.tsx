@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pagination } from "@mui/material";
+import { Alert, Pagination } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
@@ -20,6 +20,7 @@ export const ListagemDeCandidatos: React.FC = () => {
   const [rows, setRows] = useState<IListagemCandidato[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState<boolean>(false);
 
   const busca = useMemo(() => searchParams.get("busca") || "", [searchParams]);
   const pagina = useMemo(
@@ -33,21 +34,25 @@ export const ListagemDeCandidatos: React.FC = () => {
       CandidatosService.getAll(pagina, busca).then((result) => {
         setIsLoading(false);
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         } else {
           setTotalCount(result.totalCount);
           setRows(result.data);
         }
       });
     });
-  }, [busca, debounce, pagina]);
+  }, [busca, debounce, pagina, error]);
 
   const handleDelete = (id: number) => {
     // eslint-disable-next-line no-restricted-globals
     if (confirm("Realmente deseja apagar?")) {
       CandidatosService.deleteById(id).then((result) => {
         if (result instanceof Error) {
-          alert(result.message);
+          setError(true);
+          const timer = setTimeout(() => setError(false), 3000);
+          return () => clearTimeout(timer);
         } else {
           setRows((oldRows) => oldRows.filter((oldRow) => oldRow.id !== id));
           alert("Registro apagado com sucesso!");
@@ -139,6 +144,7 @@ export const ListagemDeCandidatos: React.FC = () => {
             />
           )}
         </div>
+        {error && <Alert severity="error">Falha ao salvar</Alert>}
       </div>
     </LayoutBaseDePagina>
   );
